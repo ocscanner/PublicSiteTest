@@ -255,17 +255,18 @@
     renderLaunches();
   }
   function fetchLaunchData(){
-    // Prefer the cached /launches worker endpoint (avoids Launch Library 429s).
-    // Fall back to the generic /rss proxy if that endpoint isn't deployed yet.
-    return fetch(WORKER+'/launches').then(function(r){
-      if(!r.ok) throw new Error('no-endpoint');
+    // Fetch Launch Library DIRECTLY from the browser. Each visitor uses their own
+    // IP's rate budget, which dodges the 429s that hit the worker's shared IP.
+    // LL2 sends CORS headers, so this works from the page (same trick as ISS/ADS-B).
+    // If a visitor is ever throttled, fall back to the cached worker endpoint.
+    return fetch(LL_URL).then(function(r){
+      if(!r.ok) throw new Error('ll '+r.status);
       return r.json();
     }).then(function(d){
       if(d && d.results) return d;
       throw new Error('bad-shape');
     }).catch(function(){
-      return fetch(WORKER+'/rss?url='+encodeURIComponent(LL_URL)).then(function(r){ return r.json(); })
-        .then(function(d){ return (d && typeof d.contents==='string') ? JSON.parse(d.contents) : d; });
+      return fetch(WORKER+'/launches').then(function(r){ return r.json(); });
     });
   }
   function loadLaunches(){
