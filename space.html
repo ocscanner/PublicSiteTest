@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Launch & Orbit Watch — OC Scanner</title>
+<meta name="description" content="OC Scanner monitors public safety, national security, intel, and geopolitical events across Orange County, SoCal, and beyond — live scanner traffic plus OSINT. Army veteran-operated." />
+<meta name="theme-color" content="#E9ECEC" />
+
+<!-- EDIT-DOMAIN: set your canonical URL once you have your domain -->
+<link rel="canonical" href="https://ocscanner.news/" />
+
+<!-- Open Graph (Facebook, IG, Discord, etc.) -->
+<meta property="og:site_name" content="OC Scanner" />
+<meta property="og:title" content="OC Scanner — Orange County Public Safety &amp; Local News" />
+<meta property="og:description" content="Public safety, national security, intel &amp; geopolitics — OC, SoCal &amp; beyond. Scanner + OSINT. Breaking news, first." />
+<meta property="og:type" content="website" />
+<!-- EDIT-DOMAIN: og:url and og:image must be ABSOLUTE urls on your live domain -->
+<meta property="og:url" content="https://ocscanner.news/" />
+<meta property="og:image" content="https://ocscanner.news/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="OC Scanner — Orange County Public Safety &amp; Local News" />
+<meta name="twitter:description" content="Scanner + OSINT. Public safety, national security, intel &amp; geopolitics across OC, SoCal &amp; beyond." />
+<!-- EDIT-LINK: your X handle -->
+<meta name="twitter:site" content="@OC_Scanner" />
+<!-- EDIT-DOMAIN -->
+<meta name="twitter:image" content="https://ocscanner.news/og-image.png" />
+
+<!-- Structured data: helps search/social treat OC Scanner as a news organization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsMediaOrganization",
+  "name": "OC Scanner",
+  "alternateName": "@OC_Scanner",
+  "description": "Independent monitoring of public safety, national security, intel, and geopolitical events across Orange County, Southern California, and beyond.",
+  "url": "https://ocscanner.news/",
+  "email": "OCScannerNews@gmail.com",
+  "areaServed": "Orange County, California",
+  "sameAs": [
+    "https://x.com/OC_Scanner",
+    "https://instagram.com/OC_Scanner"
+  ]
+}
+</script>
+
+<!-- Inline SVG favicon (red broadcast mark) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23E9ECEC'/%3E%3Cg fill='none' stroke='%23D02418' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M10 11a8 8 0 000 10M22 11a8 8 0 010 10M7 8a13 13 0 000 16M25 8a13 13 0 010 16'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23D02418'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<!-- ===================== TOP BAR ===================== -->
+<div class="masthead">
+  <div class="wrap masthead-inner">
+    <span class="left"><b>OC Scanner</b><span class="tagline"> — Independent News &amp; Monitoring</span></span>
+    <span class="right"><span id="today">—</span> · Orange County, CA</span>
+  </div>
+</div>
+
+<header class="bar">
+  <div class="wrap bar-inner">
+    <a class="brand" href="index.html" aria-label="OC Scanner home">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round">
+        <g class="ring" stroke="currentColor">
+          <path d="M10 11a8 8 0 000 10M22 11a8 8 0 010 10M7 8a13 13 0 000 16M25 8a13 13 0 010 16"/>
+        </g>
+        <circle cx="16" cy="16" r="2.6" fill="var(--alert)" stroke="none"/>
+      </svg>
+      <span class="brand-name">OC&nbsp;<b>Scanner</b></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="about.html">About</a>
+      <a href="live.html">Live</a>
+      <a href="space.html">Space</a>
+      <a href="index.html#latest">Latest</a>
+      <a href="store.html">Store</a>
+      <a href="tips.html">Tips</a>
+      <a href="follow.html">Follow</a>
+    </nav>
+    <!-- EDIT-LINK: your X / Twitter profile -->
+    <a class="btn btn-primary nav-cta" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Follow on X</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">MENU</button>
+  </div>
+</header>
+
+<div class="ticker" aria-hidden="true">
+  <span class="ticker-label">Monitoring</span>
+  <div class="ticker-wrap"><div class="ticker-track">
+    <span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span><span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span>
+  </div></div>
+</div>
+
+<a id="top"></a>
+<!-- ===================== LAUNCH & ORBIT WATCH ===================== -->
+<section class="block" id="space">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Launch &amp; Orbit Watch</span>
+      <h2>Pads &amp; Flyovers</h2>
+      <p>Upcoming rocket launches from California, Texas, and Florida — plus the next times the International Space Station passes over you.</p>
+    </div>
+
+    <div class="space-grid">
+      <!-- LAUNCHES -->
+      <div class="space-col">
+        <div class="space-col-head">
+          <h3>Upcoming Launches</h3>
+          <div class="state-tabs" id="launch-tabs">
+            <button data-st="ALL" class="on">All</button>
+            <button data-st="CA">Calif.</button>
+            <button data-st="TX">Texas</button>
+            <button data-st="FL">Fla.</button>
+          </div>
+        </div>
+        <div id="launch-list" class="space-list">
+          <div class="sp-skel"></div><div class="sp-skel"></div><div class="sp-skel"></div>
+        </div>
+        <p class="space-note">Source: The Space Devs · Launch Library 2. Launch dates routinely slip — always confirm with the provider before making plans around one.</p>
+      </div>
+
+      <!-- ISS FLYOVERS -->
+      <div class="space-col">
+        <div class="space-col-head">
+          <h3>ISS Flyovers</h3>
+          <button id="loc-btn" class="loc-btn">📍 Use my location</button>
+        </div>
+        <p class="loc-label" id="loc-label">Showing passes over Orange County, CA</p>
+        <div id="iss-list" class="space-list">
+          <div class="sp-skel"></div><div class="sp-skel"></div><div class="sp-skel"></div>
+        </div>
+        <p class="space-note">Source: Pollux Labs ISS Pass API. A <b>Visible</b> pass means dark skies and a sunlit station — you'll still need clear weather and an open horizon to spot it.</p>
+      </div>
+    </div>
+
+    <!-- ===== PARTNER: MaxQ (space coverage partner) ===== -->
+    <div class="partner">
+      <div class="partner-l">
+        <span class="partner-badge">Space partner</span>
+        <!-- EDIT-PARTNER: swap in MaxQ's official logo file when they send it -->
+        <img class="partner-logo" src="https://www.maxq.app/Full_Flat2.png" alt="MaxQ"
+             onerror="this.style.display='none'; if(this.nextElementSibling){ this.nextElementSibling.style.display='block'; }">
+        <span class="partner-wordmark" style="display:none;">MaxQ</span>
+      </div>
+      <div class="partner-r">
+        <p class="partner-desc">Mission control for spaceflight: every launch worldwide, live tracking, and <b>Q</b> — an AI that answers spaceflight questions in real time.</p>
+        <!-- EDIT-PARTNER: confirm the exact link / UTM MaxQ wants -->
+        <a class="partner-cta" href="https://www.maxq.app/?ref=ocscanner" target="_blank" rel="noopener">Explore MaxQ →</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="disclaimer">
+        <div class="d-h"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2L1 21h22L12 2z"/><path d="M12 9v5M12 17.5v.5"/></svg> Important</div>
+        <p>OC Scanner is an independent news and monitoring account. We are <b>not affiliated</b> with any law enforcement, fire, or government agency. Information is shared for situational awareness and may be preliminary or unconfirmed. <b>In an emergency, always call 911.</b></p>
+      </div>
+      <div class="foot-col">
+        <h4>Channel</h4>
+        <a href="about.html">About</a>
+        <a href="live.html">Live</a>
+        <a href="about.html#standards">Standards</a>
+        <a href="index.html#latest">Latest</a>
+        <a href="store.html">Store</a>
+        <a href="tips.html">Submit a tip</a>
+        <a href="follow.html">Follow</a>
+      </div>
+      <div class="foot-col">
+        <h4>Find us</h4>
+        <!-- EDIT-LINK: socials + contact -->
+        <a href="https://x.com/OC_Scanner" target="_blank" rel="noopener">X / Twitter</a>
+        <a href="https://instagram.com/OC_Scanner" target="_blank" rel="noopener">Instagram</a>
+        <a href="mailto:OCScannerNews@gmail.com">Send news &amp; tips</a>
+      </div>
+    </div>
+    <div class="foot-partner">In partnership with <a href="https://www.maxq.app/?ref=ocscanner" target="_blank" rel="noopener">MaxQ</a> — mission control for spaceflight.</div>
+    <div class="foot-bottom">
+      <span>© <span id="yr"></span> OC Scanner · Orange County, CA</span>
+      <span>Stay safe out there. 10-8.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+<script>
+(function(){
+  var WORKER = 'https://oc-radar-proxy.ocscannernews.workers.dev';
+  var LL_URL = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list&limit=40&hide_recent_previous=true';
+  var STATE_LABEL = { CA:'California', TX:'Texas', FL:'Florida' };
+  var DEFAULT_LOC = { lat:33.7175, lon:-117.8311, name:'Orange County, CA' };
+  var CACHE_KEY = 'oc_launches_v1', CACHE_MIN = 60;
+
+  function el(id){ return document.getElementById(id); }
+  function fmtDate(d){ return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
+  function fmtTime(d){ return d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function countdown(d){
+    var ms = d - Date.now(); if(ms<=0) return 'now';
+    var m=Math.floor(ms/60000), h=Math.floor(m/60), days=Math.floor(h/24);
+    if(days>=1) return 'T- '+days+'d '+(h%24)+'h';
+    if(h>=1) return 'T- '+h+'h '+(m%60)+'m';
+    return 'T- '+m+'m';
+  }
+
+  /* ---------- LAUNCHES ---------- */
+  var allLaunches = [], activeState = 'ALL';
+
+  function stateOf(loc){
+    if(/,\s*CA,\s*USA/.test(loc)) return 'CA';
+    if(/,\s*TX,\s*USA/.test(loc)) return 'TX';
+    if(/,\s*FL,\s*USA/.test(loc)) return 'FL';
+    return null;
+  }
+  function statusClass(ab){
+    var a=(ab||'').toUpperCase();
+    if(a==='GO') return 'go';
+    if(a==='TBC') return 'tbc';
+    if(a==='HOLD'||a==='SCRUB'||a==='FAILURE') return 'hold';
+    return 'tbd';
+  }
+  function renderLaunches(){
+    var box = el('launch-list'); if(!box) return;
+    var list = allLaunches.filter(function(l){ return activeState==='ALL' || l._st===activeState; });
+    if(!list.length){ box.innerHTML = '<div class="sp-empty">No upcoming launches listed for '+(activeState==='ALL'?'California, Texas, or Florida':STATE_LABEL[activeState])+' right now — check back soon.</div>'; return; }
+    box.innerHTML = list.map(function(l){
+      var d = new Date(l.net);
+      var prec = l.net_precision && l.net_precision.abbrev;
+      var coarse = (prec==='Y'||prec==='MO'||prec==='M'||prec==='Q') || (!prec && (d-Date.now())>45*86400000);
+      var when = coarse ? ('NET '+d.toLocaleDateString(undefined,{month:'short',year:'numeric'})) : (fmtDate(d)+' · '+fmtTime(d));
+      var sc = statusClass(l.status && l.status.abbrev);
+      return '<div class="sp-card">'
+        + '<div class="sp-top"><div><div class="sp-name">'+esc(l.name)+'</div>'
+        + (l.lsp_name?'<div class="sp-prov">'+esc(l.lsp_name)+'</div>':'')+'</div>'
+        + '<span class="sp-chip '+l._st.toLowerCase()+'">'+l._st+'</span></div>'
+        + '<div class="sp-when"><span class="sp-date">'+when+'</span>'
+        + (coarse?'':'<span class="sp-count">'+countdown(d)+'</span>')+'</div>'
+        + '<div class="sp-meta"><span class="sp-status '+sc+'"><span class="d"></span>'+esc(l.status?l.status.name:'')+'</span>'
+        + (l.pad?'<span>·</span><span>'+esc(l.pad)+'</span>':'')+'</div></div>';
+    }).join('');
+  }
+  function ingestLaunches(data){
+    var results = (data && data.results) || [];
+    allLaunches = results.map(function(l){ l._st = stateOf(l.location||''); return l; })
+                         .filter(function(l){ return l._st; });
+    renderLaunches();
+  }
+  function fetchLaunchData(){
+    // Prefer the cached /launches worker endpoint (avoids Launch Library 429s).
+    // Fall back to the generic /rss proxy if that endpoint isn't deployed yet.
+    return fetch(WORKER+'/launches').then(function(r){
+      if(!r.ok) throw new Error('no-endpoint');
+      return r.json();
+    }).then(function(d){
+      if(d && d.results) return d;
+      throw new Error('bad-shape');
+    }).catch(function(){
+      return fetch(WORKER+'/rss?url='+encodeURIComponent(LL_URL)).then(function(r){ return r.json(); })
+        .then(function(d){ return (d && typeof d.contents==='string') ? JSON.parse(d.contents) : d; });
+    });
+  }
+  function loadLaunches(){
+    try{ var c = JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+      if(c && (Date.now()-c.t)<CACHE_MIN*60000 && c.data){ ingestLaunches(c.data); return; } }catch(e){}
+    fetchLaunchData().then(function(data){
+      if(!data || !data.results) throw new Error('no-data');
+      try{ localStorage.setItem(CACHE_KEY, JSON.stringify({t:Date.now(), data:data})); }catch(e){}
+      ingestLaunches(data);
+    }).catch(function(){
+      var box = el('launch-list'); if(box) box.innerHTML = '<div class="sp-empty">Couldn\u2019t load the launch schedule right now — it\u2019ll try again on your next visit.</div>';
+    });
+  }
+  var tabs = el('launch-tabs');
+  if(tabs){ tabs.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if(!b) return;
+    activeState = b.getAttribute('data-st');
+    Array.prototype.forEach.call(tabs.querySelectorAll('button'), function(x){ x.classList.toggle('on', x===b); });
+    renderLaunches();
+  }); }
+
+  /* ---------- ISS FLYOVERS ---------- */
+  function renderPasses(data){
+    var box = el('iss-list'); if(!box) return;
+    var passes = (data && data.passes) || [];
+    if(!passes.length){ box.innerHTML = '<div class="sp-empty">No passes above the horizon predicted for the next few days.</div>'; return; }
+    box.innerHTML = passes.slice(0,8).map(function(p){
+      var rise = new Date(p.rise.time), set = new Date(p.set.time);
+      var dur = Math.max(1, Math.round((set-rise)/60000));
+      var elev = p.culmination ? Math.round(p.culmination.elevation_deg) : '\u2013';
+      var dir = (p.rise.compass||'')+' \u2192 '+(p.set.compass||'');
+      return '<div class="iss-card"><div class="iss-l">'
+        + '<div class="iss-date">'+fmtDate(rise)+'</div>'
+        + '<div class="iss-time">'+fmtTime(rise)+' \u2013 '+fmtTime(set)+' \u00b7 '+dur+' min \u00b7 '+esc(dir)+'</div></div>'
+        + '<div class="iss-r"><div class="iss-stat"><span class="n">'+elev+'\u00b0</span><span class="l">Max</span></div>'
+        + (p.visible?'<span class="iss-vis">\u25cf Visible</span>':'')+'</div></div>';
+    }).join('');
+  }
+  function loadPasses(loc){
+    var box = el('iss-list'); if(box) box.innerHTML = '<div class="sp-skel"></div><div class="sp-skel"></div><div class="sp-skel"></div>';
+    var lbl = el('loc-label'); if(lbl) lbl.textContent = 'Showing passes over '+loc.name;
+    fetch('https://iss-api.polluxlabs.io/iss-pass?lat='+loc.lat+'&lon='+loc.lon+'&n=12&min_elevation=10')
+      .then(function(r){ return r.json(); }).then(renderPasses)
+      .catch(function(){ if(box) box.innerHTML = '<div class="sp-empty">Couldn\u2019t load flyover predictions right now \u2014 try again shortly.</div>'; });
+  }
+  var locBtn = el('loc-btn');
+  if(locBtn){ locBtn.addEventListener('click', function(){
+    if(!navigator.geolocation) return;
+    locBtn.textContent = 'Locating\u2026';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      locBtn.textContent = '\ud83d\udccd Use my location';
+      loadPasses({ lat:+pos.coords.latitude.toFixed(4), lon:+pos.coords.longitude.toFixed(4), name:'your location' });
+    }, function(){
+      locBtn.textContent = '\ud83d\udccd Use my location';
+      var lbl = el('loc-label'); if(lbl) lbl.textContent = 'Location unavailable \u2014 showing Orange County, CA';
+    });
+  }); }
+
+  loadLaunches();
+  loadPasses(DEFAULT_LOC);
+})();
+</script>
+</body>
+</html>
