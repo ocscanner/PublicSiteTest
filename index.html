@@ -95,7 +95,7 @@
 <div class="ticker" aria-hidden="true">
   <span class="ticker-label">Monitoring</span>
   <div class="ticker-wrap"><div class="ticker-track">
-    <span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span><span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span>
+    <span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span><span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span>
   </div></div>
 </div>
 
@@ -414,7 +414,23 @@
       it.status = statusFor(it.title, it.cat);
     });
 
-    currentItems = items;
+    // POTUS schedule — its own beat, appended last. Kept out of the news flow
+    // and the AI digest (these are future-dated calendar entries, not headlines).
+    let sched = [];
+    try{
+      const stext = await fetchText('https://www.kadoa.com/potus/api/schedule');
+      if(stext){
+        const rows = (JSON.parse(stext).data) || [];
+        sched = rows.slice(0,12).map(r=>({
+          src:'White House', title:r.title, link:'https://www.kadoa.com/potus/schedule',
+          pub: r.time ? new Date(r.time) : new Date(),
+          cat:{key:'potus', label:'POTUS'}, loc: r.locationStr || 'Washington, DC',
+          status:'', isSched:true
+        })).filter(r=>r.title);
+      }
+    }catch(e){}
+
+    currentItems = items.concat(sched);
     allHeadlines = items.map(i=>i.title);
     renderTabs();
     renderWire();
@@ -429,9 +445,9 @@
   function renderTabs(){
     const tabsEl = document.getElementById('ocw-tabs');
     if(!tabsEl) return;
-    const order = ['public-safety','traffic','fire','politics','world','geopolitics'];
+    const order = ['public-safety','traffic','fire','politics','world','geopolitics','potus'];
     const present = order.filter(k => currentItems.some(i => i.cat.key === k));
-    const labelFor = k => { const r = CATEGORY_RULES.find(x=>x.key===k); return r ? r.label : 'News'; };
+    const labelFor = k => k==='potus' ? 'POTUS' : (()=>{ const r = CATEGORY_RULES.find(x=>x.key===k); return r ? r.label : 'News'; })();
     let html = '<button class="ocw-tab' + (activeFilter==='all'?' active':'') + '" data-f="all">All</button>';
     present.forEach(k=>{ html += '<button class="ocw-tab' + (activeFilter===k?' active':'') + '" data-f="'+k+'">'+labelFor(k)+'</button>'; });
     tabsEl.innerHTML = html;
@@ -449,9 +465,10 @@
   function renderWire(){
     const wrap = document.getElementById('ocw-wire-items');
     if(!wrap) return;
-    const list = (activeFilter === 'all')
-      ? currentItems
+    let list = (activeFilter === 'all')
+      ? currentItems.filter(i => i.cat.key !== 'potus')
       : currentItems.filter(i => i.cat.key === activeFilter);
+    if(activeFilter === 'potus') list = list.slice().sort((a,b)=>b.pub-a.pub);
     if(!list.length){
       wrap.innerHTML = '<div class="ocw-loading">No items in this beat right now.</div>';
       return;
@@ -461,16 +478,20 @@
       const a = document.createElement('a');
       a.className = 'ocw-item';
       a.href = it.link; a.target = '_blank'; a.rel = 'noopener';
+      const timeHtml = it.isSched
+        ? `<span class="ocw-time">${it.pub.toLocaleString(undefined,{weekday:'short',hour:'numeric',minute:'2-digit'})}</span>`
+        : `<span class="ocw-time" data-pub="${it.pub.toISOString()}" title="${it.pub.toLocaleString()}">${timeAgo(it.pub)}</span>`;
+      const statusHtml = it.status ? `<span class="ocw-status ${it.status}">${it.status}</span>` : '';
       a.innerHTML = `
         <div class="ocw-item-top">
           <span class="ocw-cat ${it.cat.key}"><span class="dot"></span>${it.cat.label}</span>
-          <span class="ocw-time" data-pub="${it.pub.toISOString()}" title="${it.pub.toLocaleString()}">${timeAgo(it.pub)}</span>
+          ${timeHtml}
         </div>
         <div class="ocw-headline">${it.title}</div>
         <div class="ocw-meta">
           <span class="ocw-src">${it.src}</span>
           <span class="ocw-loc">${it.loc}</span>
-          <span class="ocw-status ${it.status}">${it.status}</span>
+          ${statusHtml}
         </div>`;
       wrap.appendChild(a);
     });
