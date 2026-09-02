@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>About & Standards — OC Scanner</title>
+<title>Live — OC Scanner</title>
 <meta name="description" content="OC Scanner monitors public safety, national security, intel, and geopolitical events across Orange County, SoCal, and beyond — live scanner traffic plus OSINT. Army veteran-operated." />
 <meta name="theme-color" content="#E9ECEC" />
 
@@ -99,75 +100,43 @@
 </div>
 
 <a id="top"></a>
-<!-- ===================== ABOUT / EDITOR'S NOTE ===================== -->
-<section class="block" id="about">
+<!-- ===================== LIVE NOW (YouTube embed + worker auto-detect) ===================== -->
+<section class="block" id="live">
   <div class="wrap">
     <div class="block-head">
-      <span class="eyebrow">About</span>
-      <h2>Independent. Verified. Run by one operator who never stops listening.</h2>
+      <span class="eyebrow">Broadcast</span>
+      <h2>OC Scanner Live</h2>
+      <p>When we go live, the stream runs here and on X at the same time.</p>
     </div>
-    <div class="about-grid">
-      <div class="about-card">
-        <div class="label">The desk</div>
-        <div class="who">OC Scanner</div>
-        <div class="role">Founder &amp; operator · U.S. Army veteran</div>
-        <ul>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Independent &amp; unaffiliated</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> OSINT-driven, verify-first</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Monitoring OC, SoCal &amp; beyond</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> 84K+ following across X &amp; IG</li>
-        </ul>
+
+    <div class="live-stage">
+      <!-- OFF-AIR (default state) -->
+      <div class="live-offair" id="live-offair">
+        <div class="live-badge off"><span class="live-dot"></span> Off air</div>
+        <h3>We're not streaming right now</h3>
+        <p>Follow on X to get pinged the moment we go live — breaking coverage and analysis in real time. Or subscribe on YouTube to catch the replays.</p>
+        <div class="live-cta">
+          <!-- EDIT-LINK: your X / Twitter profile -->
+          <a class="btn btn-primary" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Follow on X for alerts</a>
+          <!-- EDIT-YT-URL: your YouTube channel URL -->
+          <a class="btn btn-ghost" href="https://youtube.com/@OC_Scanner" target="_blank" rel="noopener">Subscribe on YouTube</a>
+        </div>
       </div>
-      <div class="about-prose">
-        <!-- EDIT-ABOUT: this is a starting draft in your voice — make it yours. -->
-        <p>OC Scanner started with a scanner, a notebook, and a simple frustration: by the time most local stories reached the public, they were hours old and missing context. I set out to fix that — monitoring public safety, national security, intel, and geopolitical developments across Orange County, Southern California, and beyond, and getting verified information out while it still matters.</p>
-        <p>As an Army veteran, I take sourcing seriously. Everything here runs on open-source methods: corroborate first, label what's still developing, and correct in the open. No affiliation, no agenda — just a clear signal in a noisy feed, available to anyone who wants to know what's happening around them.</p>
-        <p class="sig">— OC Scanner</p>
+
+      <!-- LIVE (revealed by JS when you're broadcasting) -->
+      <div class="live-on" id="live-on" hidden>
+        <div class="live-player" id="live-player"></div>
+        <div class="live-meta">
+          <div class="live-badge on"><span class="live-dot"></span> Live now</div>
+          <!-- EDIT-LINK: your X / Twitter profile -->
+          <a class="live-x" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Also live on X →</a>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===================== BY THE NUMBERS (lives in the About tab) ===================== -->
-<section class="block">
-  <div class="wrap">
-    <span class="eyebrow">By the numbers</span>
-    <!-- EDIT-NUMBERS: replace the values below with your real figures -->
-    <div class="board" style="margin-top:18px;">
-      <div class="board-cell"><div class="k">Combined following</div><div class="v">84K<small>+</small></div><div class="s">Across X and Instagram</div></div>
-      <div class="board-cell"><div class="k">Monitoring</div><div class="v">24/7</div><div class="s">Every day of the year</div></div>
-      <div class="board-cell"><div class="k">Method</div><div class="v">OSINT</div><div class="s">Open-source &amp; verified</div></div>
-    </div>
-  </div>
-</section>
 
-<!-- ===================== EDITORIAL STANDARDS ===================== -->
-<section class="block" id="standards">
-  <div class="wrap">
-    <div class="block-head">
-      <span class="eyebrow">How we report</span>
-      <h2>Verified before it's published</h2>
-      <p>OC Scanner runs on open-source methods and one standard: get it right, show the work, and own the mistakes.</p>
-    </div>
-    <div class="standards">
-      <div class="std">
-        <div class="k">Verify</div>
-        <h3>Confirm, then post</h3>
-        <p>We corroborate through multiple signals before publishing. If something isn't confirmed, we label it clearly.</p>
-      </div>
-      <div class="std">
-        <div class="k">Source</div>
-        <h3>Show the work</h3>
-        <p>Open-source intelligence and scanner traffic — we point to what we're seeing wherever we can.</p>
-      </div>
-      <div class="std">
-        <div class="k">Correct</div>
-        <h3>Update in the open</h3>
-        <p>Developing stories change. When the facts shift, we update and correct publicly.</p>
-      </div>
-    </div>
-  </div>
-</section>
 <!-- ===================== FOOTER ===================== -->
 <footer>
   <div class="wrap">
@@ -203,6 +172,35 @@
 </footer>
 
 <script src="app.js"></script>
+<script>
+(function(){
+  var OC_LIVE     = false;             // <-- flip to true when you're broadcasting
+  var YT_CHANNEL  = 'EDIT-YT-CHANNEL'; // your YouTube channel ID (starts with UC…)
+  var YT_VIDEO_ID = '';                // optional: a specific video/stream ID (overrides channel)
 
+  var offair = document.getElementById('live-offair');
+  var onair  = document.getElementById('live-on');
+  var player = document.getElementById('live-player');
+  if(!offair || !onair || !player) return;
+
+  function embedUrl(){
+    if(YT_VIDEO_ID) return 'https://www.youtube.com/embed/' + YT_VIDEO_ID + '?autoplay=1&rel=0';
+    if(YT_CHANNEL && YT_CHANNEL.indexOf('EDIT') === -1)
+      return 'https://www.youtube.com/embed/live_stream?channel=' + YT_CHANNEL + '&autoplay=1';
+    return '';
+  }
+
+  if(OC_LIVE){
+    var url = embedUrl();
+    if(url){
+      player.innerHTML = '<iframe src="' + url + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen title="OC Scanner live stream"></iframe>';
+      onair.hidden = false;
+      offair.hidden = true;
+    }
+    // if OC_LIVE is true but the channel ID hasn't been set yet, the off-air card stays
+  }
+  // when OC_LIVE is false, the default off-air card stays as-is
+})();
+</script>
 </body>
 </html>
