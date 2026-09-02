@@ -498,3 +498,37 @@
     *{ animation:none !important; transition:none !important; scroll-behavior:auto; }
     .marquee-track{ transform:translateX(0); }
   }
+
+  /* ============================================================
+     DARK MODE — follows the OS setting by default (set on <html>
+     by a tiny inline script in each page's <head>), and a header
+     toggle lets visitors override + remembers their choice.
+     ============================================================ */
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --paper:      #101316;   /* deep slate page */
+    --card:       #191D22;   /* cards / panels */
+    --card-2:     #21262C;   /* subtle fills / hover */
+    --ink:        #E8EAED;   /* primary text */
+    --slate:      #A6AEB7;   /* secondary text */
+    --slate-dim:  #737B84;   /* tertiary / captions */
+    --alert:      #F0453A;   /* accent red, brightened for dark */
+    --alert-dk:   #C42217;
+    --hairline:   rgba(255,255,255,.14);
+    --hairline-2: rgba(255,255,255,.07);
+  }
+  /* components that use hardcoded LIGHT fills need dark equivalents */
+  :root[data-theme="dark"] .sp-chip.ca{ border-color:rgba(120,170,225,.35); background:rgba(120,170,225,.12); color:var(--ink); }
+  :root[data-theme="dark"] .sp-chip.tx{ border-color:rgba(225,150,110,.35); background:rgba(225,150,110,.12); color:var(--ink); }
+  :root[data-theme="dark"] .sp-chip.fl{ border-color:rgba(225,190,110,.35); background:rgba(225,190,110,.12); color:var(--ink); }
+  :root[data-theme="dark"] .sp-status.go{  color:#5FD08A; background:rgba(40,165,90,.16); }
+  :root[data-theme="dark"] .sp-status.tbc{ color:#E6B54D; background:rgba(224,165,22,.16); }
+  :root[data-theme="dark"] .sp-status.tbd{ color:var(--slate); background:rgba(255,255,255,.06); }
+  :root[data-theme="dark"] .sp-status.hold{ color:#F2857A; background:rgba(208,36,24,.18); }
+  :root[data-theme="dark"] .iss-vis{ color:#8FC3EA; background:rgba(70,140,200,.15); border-color:rgba(120,170,225,.30); }
+  :root[data-theme="dark"] .sp-skel{ background:linear-gradient(100deg,#1E2329 30%,#262C33 50%,#1E2329 70%); background-size:200% 100%; }
+  :root[data-theme="dark"] .panel-merch{ background:linear-gradient(180deg,#1B1F24,#241A1C); border-color:var(--hairline); }
+
+  /* header dark-mode toggle button (injected by app.js) */
+  .theme-toggle{ background:none; border:1px solid var(--hairline); color:var(--ink); width:34px; height:34px; border-radius:8px; cursor:pointer; font-size:15px; line-height:1; display:inline-flex; align-items:center; justify-content:center; margin-left:14px; transition:border-color .15s var(--ease), color .15s var(--ease); flex:none; }
+  .theme-toggle:hover{ border-color:var(--alert); color:var(--alert); }
