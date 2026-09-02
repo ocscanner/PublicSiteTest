@@ -95,7 +95,7 @@
 <div class="ticker" aria-hidden="true">
   <span class="ticker-label">Monitoring</span>
   <div class="ticker-wrap"><div class="ticker-track">
-    <span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span><span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span>
+    <span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span><span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span>
   </div></div>
 </div>
 
@@ -199,7 +199,7 @@
   var LL_URL = 'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?mode=list&limit=40&hide_recent_previous=true';
   var STATE_LABEL = { CA:'California', TX:'Texas', FL:'Florida' };
   var DEFAULT_LOC = { lat:33.7175, lon:-117.8311, name:'Orange County, CA' };
-  var CACHE_KEY = 'oc_launches_v1', CACHE_MIN = 60;
+  var CACHE_KEY = 'oc_launches_v2', CACHE_MIN = 60;
 
   function el(id){ return document.getElementById(id); }
   function fmtDate(d){ return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
@@ -272,10 +272,12 @@
   }
   function loadLaunches(){
     try{ var c = JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
-      if(c && (Date.now()-c.t)<CACHE_MIN*60000 && c.data){ ingestLaunches(c.data); return; } }catch(e){}
+      // only trust a cache that actually has launches — never serve a cached empty/failed result
+      if(c && (Date.now()-c.t)<CACHE_MIN*60000 && c.data && c.data.results && c.data.results.length){ ingestLaunches(c.data); return; } }catch(e){}
     fetchLaunchData().then(function(data){
       if(!data || !data.results) throw new Error('no-data');
-      try{ localStorage.setItem(CACHE_KEY, JSON.stringify({t:Date.now(), data:data})); }catch(e){}
+      // only cache real results, so a throttled/empty response can't poison the cache
+      if(data.results.length){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({t:Date.now(), data:data})); }catch(e){} }
       ingestLaunches(data);
     }).catch(function(){
       var box = el('launch-list'); if(box) box.innerHTML = '<div class="sp-empty">Couldn\u2019t load the launch schedule right now — it\u2019ll try again on your next visit.</div>';
