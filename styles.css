@@ -219,6 +219,10 @@
   .hero-grid > *{ min-width:0; }
   .ocw-headline{ overflow-wrap:anywhere; }
   .ocw-note{ overflow-wrap:anywhere; }
+  /* bulletproof the LOADED digest/wire content against horizontal overflow (mobile) */
+  .ocw-digest, .ocw-digest-head, .ocw-digest-actions, .ocw-scroll, .ocw-item, .ocw-item-top, .ocw-meta, .ocw-tabs{ min-width:0; max-width:100%; }
+  .ocw-item-top{ flex-wrap:wrap; }
+  .ocw-cat, .ocw-headline, .ocw-digest-body, .ocw-src, .ocw-loc{ overflow-wrap:anywhere; word-break:break-word; min-width:0; }
   .ocw-note{ font-family:var(--mono); font-size:10.5px; line-height:1.55; color:var(--slate-dim); letter-spacing:.02em; margin-top:12px; }
   .ocw-live-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--live); box-shadow:0 0 8px var(--live); margin-right:5px; vertical-align:middle; animation:pulse 1.6s infinite; }
   .ocw-scroll{ max-height:316px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(255,176,0,.3) transparent; }
