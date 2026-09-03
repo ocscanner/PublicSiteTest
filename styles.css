@@ -491,9 +491,16 @@
   @media (max-width:560px){
     .wrap{ padding:0 20px; }
     .coverage{ grid-template-columns:1fr; }
-    .hero{ padding:54px 0 56px; }
-    section.block{ padding:62px 0; }
+    .blog-list{ grid-template-columns:1fr; }
+    .partner-r{ min-width:100%; }
+    .hero{ padding:44px 0 46px; }
+    section.block{ padding:48px 0; }
     .soc-card{ padding:24px; }
+  }
+  @media (max-width:440px){
+    .hero-cta{ gap:10px; }
+    .hero-cta .btn{ flex:1 1 100%; justify-content:center; }
+    .mast-loc{ display:none; }
   }
   @media (prefers-reduced-motion:reduce){
     *{ animation:none !important; transition:none !important; scroll-behavior:auto; }
@@ -521,6 +528,7 @@
   /* the frosted header bar has a hardcoded light bg — flip it in dark mode
      so the (light) nav text and toggle don't sit on a light band */
   :root[data-theme="dark"] header.bar{ background:rgba(16,19,22,.82); }
+  :root[data-theme="dark"] .nav.open{ background:rgba(16,19,22,.98); }
   /* components that use hardcoded LIGHT fills need dark equivalents */
   :root[data-theme="dark"] .sp-chip.ca{ border-color:rgba(120,170,225,.35); background:rgba(120,170,225,.12); color:var(--ink); }
   :root[data-theme="dark"] .sp-chip.tx{ border-color:rgba(225,150,110,.35); background:rgba(225,150,110,.12); color:var(--ink); }
