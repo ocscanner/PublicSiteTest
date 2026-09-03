@@ -124,20 +124,18 @@
       </div>
     </div>
 
-    <!-- InsiderWire -->
+    <!-- Insider Wire -->
     <div class="partner">
       <div class="partner-l">
-        <span class="partner-badge">Partner</span>
-        <!-- EDIT-PARTNER: add InsiderWire's official logo URL when you have it -->
-        <img class="partner-logo" src="EDIT-INSIDERWIRE-LOGO" alt="InsiderWire"
-             onerror="this.style.display='none'; if(this.nextElementSibling){ this.nextElementSibling.style.display='block'; }">
-        <span class="partner-wordmark" style="display:none;">InsiderWire</span>
+        <span class="partner-badge">News partner</span>
+        <!-- EDIT-PARTNER: swap the wordmark for Insider Wire's logo if they send a file -->
+        <span class="partner-wordmark" style="display:block;">Insider Wire</span>
       </div>
       <div class="partner-r">
-        <!-- EDIT-PARTNER: replace with InsiderWire's one or two line description -->
-        <p class="partner-desc">InsiderWire &mdash; <i>a one- or two-line description of what they do goes here.</i></p>
-        <!-- EDIT-PARTNER-URL: InsiderWire link (add ?ref=ocscanner for tracking if they want it) -->
-        <a class="partner-cta" href="#" target="_blank" rel="noopener">Visit InsiderWire &rarr;</a>
+        <p class="partner-desc">Insider Wire is an independent newsroom delivering real-time coverage of U.S. politics, world affairs, business, and tech &mdash; breaking news, on the wire. From defense and foreign policy to live updates on developing stories, it&rsquo;s fast, independent reporting with published editorial standards.</p>
+        <a class="partner-cta" href="https://insiderwire.com/?ref=ocscanner" target="_blank" rel="noopener">Read Insider Wire &rarr;</a>
+        <div class="partner-feed-label">Latest from Insider Wire</div>
+        <div class="partner-feed" id="iw-feed"><div class="iw-skel"></div><div class="iw-skel"></div><div class="iw-skel"></div></div>
       </div>
     </div>
   </div>
@@ -178,6 +176,33 @@
 </footer>
 
 <script src="app.js"></script>
+
+<!-- Insider Wire live headlines — pulled from their RSS via your worker proxy -->
+<script>
+(function(){
+  var box = document.getElementById('iw-feed'); if(!box) return;
+  var WORKER = 'https://oc-radar-proxy.ocscannernews.workers.dev';
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function hideFeed(){ box.style.display='none'; var l=document.querySelector('.partner-feed-label'); if(l) l.style.display='none'; }
+  fetch(WORKER + '/rss?url=' + encodeURIComponent('https://insiderwire.com/rssfeed.xml'))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      var xml = (j && j.contents) || '';
+      var items = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
+      var html = items.slice(0,4).map(function(it){
+        var tm = it.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        var lm = it.match(/<link[^>]*>([\s\S]*?)<\/link>/i);
+        var title = tm ? tm[1].replace(/<!\[CDATA\[|\]\]>/g,'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').trim() : '';
+        var link = lm ? lm[1].replace(/<!\[CDATA\[|\]\]>/g,'').trim() : '';
+        if(!link){ var gm = it.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i); link = gm ? gm[1].replace(/<!\[CDATA\[|\]\]>/g,'').trim() : 'https://insiderwire.com'; }
+        if(!title) return '';
+        return '<a class="iw-item" href="'+esc(link)+'" target="_blank" rel="noopener">'+esc(title)+'</a>';
+      }).filter(Boolean).join('');
+      if(html){ box.innerHTML = html; } else { hideFeed(); }
+    })
+    .catch(hideFeed);
+})();
+</script>
 
 </body>
 </html>
