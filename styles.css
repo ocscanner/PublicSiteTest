@@ -215,7 +215,10 @@
   [hidden]{ display:none !important; }
 
   /* ============ LIVE INTEL (AI digest + RSS wire), themed to site ============ */
-  .ocw{ font-family:var(--body); color:var(--dev-text); --ocw-fm:var(--mono); --ocw-fu:var(--body); --ocw-fh:var(--display); }
+  .ocw{ font-family:var(--body); color:var(--dev-text); min-width:0; max-width:100%; --ocw-fm:var(--mono); --ocw-fu:var(--body); --ocw-fh:var(--display); }
+  .hero-grid > *{ min-width:0; }
+  .ocw-headline{ overflow-wrap:anywhere; }
+  .ocw-note{ overflow-wrap:anywhere; }
   .ocw-note{ font-family:var(--mono); font-size:10.5px; line-height:1.55; color:var(--slate-dim); letter-spacing:.02em; margin-top:12px; }
   .ocw-live-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--live); box-shadow:0 0 8px var(--live); margin-right:5px; vertical-align:middle; animation:pulse 1.6s infinite; }
   .ocw-scroll{ max-height:316px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:rgba(255,176,0,.3) transparent; }
