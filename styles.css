@@ -581,3 +581,11 @@
   .post-article pre{ background:var(--card-2); padding:16px; border-radius:10px; overflow:auto; margin:0 0 18px; }
   .post-article pre code{ background:none; padding:0; }
   @media(max-width:560px){ #post-title{ font-size:30px; } }
+
+  /* partner live headline feed (Insider Wire) */
+  .partner-feed-label{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#7E8894; margin-top:18px; }
+  .partner-feed{ margin-top:8px; display:flex; flex-direction:column; width:100%; }
+  .partner-feed .iw-item{ font-family:var(--body); font-size:14px; line-height:1.4; color:#C2C9D2; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.07); transition:color .15s var(--ease); }
+  .partner-feed .iw-item:last-child{ border-bottom:0; }
+  .partner-feed .iw-item:hover{ color:#fff; }
+  .iw-skel{ height:16px; margin:9px 0; border-radius:4px; background:linear-gradient(100deg,#1a1e24 30%,#242a31 50%,#1a1e24 70%); background-size:200% 100%; animation:ocwShimmer 1.4s infinite; }
