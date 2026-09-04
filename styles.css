@@ -596,3 +596,12 @@
   .partner-feed .iw-item:last-child{ border-bottom:0; }
   .partner-feed .iw-item:hover{ color:#fff; }
   .iw-skel{ height:16px; margin:9px 0; border-radius:4px; background:linear-gradient(100deg,#1a1e24 30%,#242a31 50%,#1a1e24 70%); background-size:200% 100%; animation:ocwShimmer 1.4s infinite; }
+
+  /* ============ DONATE ============ */
+  .donate-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; margin-top:30px; }
+  .donate-card{ display:flex; flex-direction:column; gap:6px; border:1px solid var(--hairline); border-radius:12px; background:var(--card); padding:22px; transition:border-color .15s var(--ease), transform .15s var(--ease); }
+  .donate-card:hover{ border-color:var(--alert); transform:translateY(-2px); }
+  .donate-card .dn-name{ font-family:var(--display); font-weight:650; font-size:18px; color:var(--ink); }
+  .donate-card .dn-sub{ font-family:var(--mono); font-size:11.5px; letter-spacing:.04em; color:var(--slate); }
+  .donate-note{ font-family:var(--mono); font-size:11.5px; color:var(--slate-dim); margin-top:24px; line-height:1.6; }
+  @media(max-width:560px){ .donate-grid{ grid-template-columns:1fr; } }
