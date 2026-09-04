@@ -4,7 +4,7 @@
 <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Follow — OC Scanner</title>
+<title>Donate — OC Scanner</title>
 <meta name="description" content="OC Scanner monitors public safety, national security, intel, and geopolitical events across Orange County, SoCal, and beyond — live scanner traffic plus OSINT. Army veteran-operated." />
 <meta name="theme-color" content="#E9ECEC" />
 
@@ -55,14 +55,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="styles.css?v=2" />
 </head>
 <body>
 <!-- ===================== TOP BAR ===================== -->
 <div class="masthead">
   <div class="wrap masthead-inner">
     <span class="left"><b>OC Scanner</b><span class="tagline"> — Independent News &amp; Monitoring</span></span>
-    <span class="right"><span id="today">—</span> · Orange County, CA</span>
+    <span class="right"><span id="today">—</span><span class="mast-loc"> · Orange County, CA</span></span>
   </div>
 </div>
 
@@ -81,10 +81,11 @@
       <a href="about.html">About</a>
       <a href="live.html">Live</a>
       <a href="space.html">Space</a>
-      <a href="index.html#latest">Latest</a>
+      <a href="blog.html">Blog</a>
+      <a href="community.html">Community</a>
       <a href="store.html">Store</a>
       <a href="tips.html">Tips</a>
-      <a href="follow.html">Follow</a>
+      <a href="donate.html">Donate</a>
     </nav>
     <!-- EDIT-LINK: your X / Twitter profile -->
     <a class="btn btn-primary nav-cta" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Follow on X</a>
@@ -95,41 +96,34 @@
 <div class="ticker" aria-hidden="true">
   <span class="ticker-label">Monitoring</span>
   <div class="ticker-wrap"><div class="ticker-track">
-    <span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span><span>Orange County &amp; SoCal public safety</span><span>National security &amp; defense developments</span><span>OSINT verification in progress</span><span>Geopolitical events at home &amp; abroad</span><span>Scanner traffic, 24/7</span><span>Tips: OCScannerNews@gmail.com</span>
+    <span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span><span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span>
   </div></div>
 </div>
 
-<a id="top"></a>
-<!-- ===================== FOLLOW / SOCIAL HUB ===================== -->
-<section class="block" id="follow">
+<!-- ===================== DONATE ===================== -->
+<section class="block" id="donate">
   <div class="wrap">
     <div class="block-head">
-      <span class="eyebrow">Tune in</span>
-      <h2>Follow the channel</h2>
-      <p>The fastest, most complete updates go out on social first. Pick your frequency.</p>
+      <span class="eyebrow">Support the work</span>
+      <h2>Donate</h2>
+      <p>OC Scanner is independent and reader-supported. If the coverage is useful to you, a contribution helps cover the monitoring tools, data feeds, and time that keep it running &mdash; and keep it independent.</p>
     </div>
-    <div class="social">
-      <!-- EDIT-LINK: your X / Twitter profile -->
-      <a class="soc-card" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">
-        <div class="soc-left">
-          <svg class="soc-ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.9h3.7l-8 9.1 9.4 12.4h-7.4l-5.8-7.6-6.6 7.6H.5l8.5-9.8L0 1.9h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.4h2L6.5 4H4.4l13.2 17.3Z"/></svg>
-          <div><div class="soc-h">X / Twitter</div><div class="soc-handle">@OC_Scanner</div></div>
-        </div>
-        <span class="soc-arrow">→</span>
+
+    <div class="donate-grid">
+      <!-- EDIT-DONATE: replace YOUR-KOFI with your Ko-fi handle (ko-fi.com/<handle>) -->
+      <a class="donate-card" href="https://ko-fi.com/YOUR-KOFI" target="_blank" rel="noopener">
+        <span class="dn-name">Ko-fi</span><span class="dn-sub">One-time or monthly</span>
       </a>
-      <!-- EDIT-LINK: your Instagram profile -->
-      <a class="soc-card" href="https://instagram.com/OC_Scanner" target="_blank" rel="noopener">
-        <div class="soc-left">
-          <svg class="soc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-          <div><div class="soc-h">Instagram</div><div class="soc-handle">@OC_Scanner</div></div>
-        </div>
-        <span class="soc-arrow">→</span>
+      <!-- EDIT-DONATE: replace YOUR-VENMO with your Venmo username -->
+      <a class="donate-card" href="https://venmo.com/u/YOUR-VENMO" target="_blank" rel="noopener">
+        <span class="dn-name">Venmo</span><span class="dn-sub">@YOUR-VENMO</span>
+      </a>
+      <a class="donate-card" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">
+        <span class="dn-name">X Money</span><span class="dn-sub">Send on our X profile</span>
       </a>
     </div>
-    <div class="tags">
-      <a href="https://x.com/search?q=%23ScannerOn&amp;src=hashtag_click" target="_blank" rel="noopener">#ScannerOn</a>
-      <a href="https://x.com/search?q=%23OSINT&amp;src=hashtag_click" target="_blank" rel="noopener">#OSINT</a>
-    </div>
+
+    <p class="donate-note">Every contribution goes straight back into keeping OC Scanner running &mdash; independent, veteran-operated, and OSINT-driven. Thank you.</p>
   </div>
 </section>
 
@@ -146,10 +140,11 @@
         <a href="about.html">About</a>
         <a href="live.html">Live</a>
         <a href="about.html#standards">Standards</a>
-        <a href="index.html#latest">Latest</a>
+        <a href="blog.html">Blog</a>
+      <a href="community.html">Community</a>
         <a href="store.html">Store</a>
         <a href="tips.html">Submit a tip</a>
-        <a href="follow.html">Follow</a>
+        <a href="donate.html">Donate</a>
       </div>
       <div class="foot-col">
         <h4>Find us</h4>
