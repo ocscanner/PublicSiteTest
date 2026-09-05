@@ -1,155 +1,120 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Blog — OC Scanner</title>
-<meta name="description" content="OC Scanner monitors public safety, national security, intel, and geopolitical events across Orange County, SoCal, and beyond — live scanner traffic plus OSINT. Army veteran-operated." />
-<meta name="theme-color" content="#E9ECEC" />
+/* ============================================================
+   OC SCANNER — file-based blog engine
+   Posts live as markdown files in the /posts folder of your repo.
+   To publish: drop a new .md file in /posts (with the front-matter
+   block shown in the sample posts) and commit. It appears automatically.
 
-<!-- EDIT-DOMAIN: set your canonical URL once you have your domain -->
-<link rel="canonical" href="https://ocscanner.news/" />
+   EDIT-REPO: point these at your repo. Right now: ocscanner/PublicSiteTest.
+   (When you move to a different repo or the ocscanner.github.io root repo,
+   update owner/repo/branch here — this is the only place it lives.)
+   ============================================================ */
+(function(){
+  "use strict";
+  var REPO = { owner:'ocscanner', repo:'PublicSiteTest', branch:'main', dir:'posts' };
 
-<!-- Open Graph (Facebook, IG, Discord, etc.) -->
-<meta property="og:site_name" content="OC Scanner" />
-<meta property="og:title" content="OC Scanner — Orange County Public Safety &amp; Local News" />
-<meta property="og:description" content="Public safety, national security, intel &amp; geopolitics — OC, SoCal &amp; beyond. Scanner + OSINT. Breaking news, first." />
-<meta property="og:type" content="website" />
-<!-- EDIT-DOMAIN: og:url and og:image must be ABSOLUTE urls on your live domain -->
-<meta property="og:url" content="https://ocscanner.news/" />
-<meta property="og:image" content="https://ocscanner.news/og-image.png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function fmtDate(d){
+    if(!d) return '';
+    var dt = new Date(String(d)+'T00:00:00');
+    if(isNaN(dt)) return d;
+    return dt.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  }
+  // Split a "--- front matter --- body" file into { meta, body }
+  function parseFM(text){
+    var m = String(text).match(/^\uFEFF?---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)$/);
+    if(!m) return { meta:{}, body:String(text) };
+    var meta = {};
+    m[1].split(/\r?\n/).forEach(function(line){
+      var i = line.indexOf(':'); if(i < 0) return;
+      var k = line.slice(0,i).trim().toLowerCase();
+      var v = line.slice(i+1).trim().replace(/^["']|["']$/g,'');
+      if(k) meta[k] = v;
+    });
+    return { meta:meta, body:m[2] };
+  }
+  function firstPara(body){
+    var t = (body||'').replace(/^#{1,6}\s.*$/gm,'').replace(/[#*_>`]/g,'').trim();
+    var p = t.split(/\n\s*\n/)[0] || '';
+    return p.length > 170 ? p.slice(0,170)+'\u2026' : p;
+  }
 
-<!-- Twitter / X Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="OC Scanner — Orange County Public Safety &amp; Local News" />
-<meta name="twitter:description" content="Scanner + OSINT. Public safety, national security, intel &amp; geopolitics across OC, SoCal &amp; beyond." />
-<!-- EDIT-LINK: your X handle -->
-<meta name="twitter:site" content="@OC_Scanner" />
-<!-- EDIT-DOMAIN -->
-<meta name="twitter:image" content="https://ocscanner.news/og-image.png" />
+  var apiURL = 'https://api.github.com/repos/'+REPO.owner+'/'+REPO.repo+'/contents/'+REPO.dir+'?ref='+REPO.branch;
+  function rawURL(slug){
+    return 'https://raw.githubusercontent.com/'+REPO.owner+'/'+REPO.repo+'/'+REPO.branch+'/'+REPO.dir+'/'+encodeURIComponent(slug)+'.md';
+  }
 
-<!-- Structured data: helps search/social treat OC Scanner as a news organization -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "NewsMediaOrganization",
-  "name": "OC Scanner",
-  "alternateName": "@OC_Scanner",
-  "description": "Independent monitoring of public safety, national security, intel, and geopolitical events across Orange County, Southern California, and beyond.",
-  "url": "https://ocscanner.news/",
-  "email": "OCScannerNews@gmail.com",
-  "areaServed": "Orange County, California",
-  "sameAs": [
-    "https://x.com/OC_Scanner",
-    "https://instagram.com/OC_Scanner"
-  ]
-}
-</script>
+  function list(){
+    try{ var c = JSON.parse(sessionStorage.getItem('ocblog')||'null'); if(c && Date.now()-c.t < 300000) return Promise.resolve(c.posts); }catch(e){}
+    return fetch(apiURL).then(function(r){ if(!r.ok) throw new Error('list '+r.status); return r.json(); }).then(function(files){
+      var mds = (files||[]).filter(function(f){ return /\.md$/i.test(f.name); });
+      return Promise.all(mds.map(function(f){
+        return fetch(f.download_url).then(function(r){ return r.text(); }).then(function(t){
+          var fm = parseFM(t), slug = f.name.replace(/\.md$/i,'');
+          return { slug:slug, title:fm.meta.title||slug, date:fm.meta.date||'', tag:fm.meta.tag||'', author:fm.meta.author||'', excerpt:fm.meta.excerpt||firstPara(fm.body) };
+        }).catch(function(){ return null; });
+      }));
+    }).then(function(posts){
+      posts = posts.filter(Boolean).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+      try{ sessionStorage.setItem('ocblog', JSON.stringify({t:Date.now(), posts:posts})); }catch(e){}
+      return posts;
+    });
+  }
+  function getPost(slug){
+    return fetch(rawURL(slug)).then(function(r){ if(!r.ok) throw new Error('post '+r.status); return r.text(); }).then(parseFM);
+  }
+  function card(p){
+    return '<a class="blog-card" href="post.html?p='+encodeURIComponent(p.slug)+'">'
+      + (p.tag ? '<span class="blog-tag">'+esc(p.tag)+'</span>' : '')
+      + '<h3>'+esc(p.title)+'</h3>'
+      + (p.date ? '<div class="blog-date">'+fmtDate(p.date)+'</div>' : '')
+      + (p.excerpt ? '<p>'+esc(p.excerpt)+'</p>' : '')
+      + '</a>';
+  }
 
-<!-- Inline SVG favicon (red broadcast mark) -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23E9ECEC'/%3E%3Cg fill='none' stroke='%23D02418' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M10 11a8 8 0 000 10M22 11a8 8 0 010 10M7 8a13 13 0 000 16M25 8a13 13 0 010 16'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23D02418'/%3E%3C/svg%3E" />
+  // ---- render whichever surface exists on this page ----
+  var listBox = document.getElementById('blog-list');   // blog.html
+  var homeBox = document.getElementById('home-stories'); // index.html strip
+  var postBody = document.getElementById('post-body');   // post.html
 
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=2" />
-</head>
-<body>
-<!-- ===================== TOP BAR ===================== -->
-<div class="masthead">
-  <div class="wrap masthead-inner">
-    <span class="left"><b>OC Scanner</b><span class="tagline"> — Independent News &amp; Monitoring</span></span>
-    <span class="right"><span id="today">—</span><span class="mast-loc"> · Orange County, CA</span></span>
-  </div>
-</div>
+  if(listBox){
+    list().then(function(posts){
+      listBox.innerHTML = posts.length
+        ? posts.map(card).join('')
+        : '<div class="blog-empty">No stories yet \u2014 your first post will appear here.</div>';
+    }).catch(function(){
+      listBox.innerHTML = '<div class="blog-empty">Couldn\u2019t load stories right now. Make sure a <code>posts</code> folder exists in the repo.</div>';
+    });
+  }
 
-<header class="bar">
-  <div class="wrap bar-inner">
-    <a class="brand" href="index.html" aria-label="OC Scanner home">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round">
-        <g class="ring" stroke="currentColor">
-          <path d="M10 11a8 8 0 000 10M22 11a8 8 0 010 10M7 8a13 13 0 000 16M25 8a13 13 0 010 16"/>
-        </g>
-        <circle cx="16" cy="16" r="2.6" fill="var(--alert)" stroke="none"/>
-      </svg>
-      <span class="brand-name">OC&nbsp;<b>Scanner</b></span>
-    </a>
-    <nav class="nav" id="nav">
-      <a href="about.html">About</a>
-      <a href="live.html">Live</a>
-      <a href="space.html">Space</a>
-      <a href="blog.html">Blog</a>
-      <a href="community.html">Community</a>
-      <a href="store.html">Store</a>
-      <a href="tips.html">Tips</a>
-      <a href="donate.html">Donate</a>
-    </nav>
-    <!-- EDIT-LINK: your X / Twitter profile -->
-    <a class="btn btn-primary nav-cta" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Follow on X</a>
-    <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">MENU</button>
-  </div>
-</header>
+  if(homeBox){
+    list().then(function(posts){
+      var wrap = document.getElementById('latest-stories');
+      if(!posts.length){ if(wrap) wrap.style.display = 'none'; return; }
+      homeBox.innerHTML = posts.slice(0,3).map(card).join('');
+    }).catch(function(){ var wrap = document.getElementById('latest-stories'); if(wrap) wrap.style.display='none'; });
+  }
 
-<div class="ticker" aria-hidden="true">
-  <span class="ticker-label">Monitoring</span>
-  <div class="ticker-wrap"><div class="ticker-track">
-    <span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span><span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span>
-  </div></div>
-</div>
-
-<a id="top"></a>
-<!-- ===================== BLOG ===================== -->
-<section class="block" id="blog">
-  <div class="wrap">
-    <div class="block-head">
-      <span class="eyebrow">The Blog</span>
-      <h2>Stories &amp; Analysis</h2>
-      <p>Longer-form reporting, analysis, and behind-the-scenes from OC Scanner.</p>
-    </div>
-    <div id="blog-list" class="blog-list">
-      <div class="blog-skel"></div><div class="blog-skel"></div><div class="blog-skel"></div>
-    </div>
-  </div>
-</section>
-<!-- ===================== FOOTER ===================== -->
-<footer>
-  <div class="wrap">
-    <div class="foot-grid">
-      <div class="disclaimer">
-        <div class="d-h"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 2L1 21h22L12 2z"/><path d="M12 9v5M12 17.5v.5"/></svg> Important</div>
-        <p>OC Scanner is an independent news and monitoring account. We are <b>not affiliated</b> with any law enforcement, fire, or government agency. Information is shared for situational awareness and may be preliminary or unconfirmed. <b>In an emergency, always call 911.</b></p>
-      </div>
-      <div class="foot-col">
-        <h4>Channel</h4>
-        <a href="about.html">About</a>
-        <a href="live.html">Live</a>
-        <a href="about.html#standards">Standards</a>
-        <a href="blog.html">Blog</a>
-      <a href="community.html">Community</a>
-        <a href="store.html">Store</a>
-        <a href="tips.html">Submit a tip</a>
-        <a href="donate.html">Donate</a>
-      </div>
-      <div class="foot-col">
-        <h4>Find us</h4>
-        <!-- EDIT-LINK: socials + contact -->
-        <a href="https://x.com/OC_Scanner" target="_blank" rel="noopener">X / Twitter</a>
-        <a href="https://instagram.com/OC_Scanner" target="_blank" rel="noopener">Instagram</a>
-        <a href="mailto:OCScannerNews@gmail.com">Send news &amp; tips</a>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <span>© <span id="yr"></span> OC Scanner · Orange County, CA</span>
-      <span>Stay safe out there. 10-8.</span>
-    </div>
-  </div>
-</footer>
-
-<script src="app.js"></script>
-
-<script src="blog.js"></script>
-</body>
-</html>
+  if(postBody){
+    var slug = new URLSearchParams(location.search).get('p');
+    var titleEl = document.getElementById('post-title'), metaEl = document.getElementById('post-meta');
+    if(!slug){
+      if(titleEl) titleEl.textContent = 'No story specified';
+      postBody.innerHTML = '<p><a href="blog.html">Back to all stories</a>.</p>';
+    } else {
+      getPost(slug).then(function(post){
+        var m = post.meta;
+        document.title = (m.title || 'Story') + ' \u2014 OC Scanner';
+        if(titleEl) titleEl.textContent = m.title || slug;
+        if(metaEl) metaEl.innerHTML = [
+          m.tag ? '<span class="blog-tag">'+esc(m.tag)+'</span>' : '',
+          m.date ? fmtDate(m.date) : '',
+          m.author ? 'By '+esc(m.author) : ''
+        ].filter(Boolean).join(' <span class="post-dot">\u00b7</span> ');
+        postBody.innerHTML = (window.marked && window.marked.parse) ? window.marked.parse(post.body) : '<pre>'+esc(post.body)+'</pre>';
+      }).catch(function(){
+        if(titleEl) titleEl.textContent = 'Story not found';
+        postBody.innerHTML = '<p>That story couldn\u2019t be loaded. <a href="blog.html">Back to all stories</a>.</p>';
+      });
+    }
+  }
+})();
