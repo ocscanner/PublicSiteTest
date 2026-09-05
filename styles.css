@@ -605,3 +605,6 @@
   .donate-card .dn-sub{ font-family:var(--mono); font-size:11.5px; letter-spacing:.04em; color:var(--slate); }
   .donate-note{ font-family:var(--mono); font-size:11.5px; color:var(--slate-dim); margin-top:24px; line-height:1.6; }
   @media(max-width:560px){ .donate-grid{ grid-template-columns:1fr; } }
+
+  /* square (app-icon) partner logo, e.g. LunarCrush */
+  .partner-logo-sq{ height:52px; width:52px; max-width:none; border-radius:11px; }
