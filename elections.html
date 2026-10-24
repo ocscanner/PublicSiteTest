@@ -5,7 +5,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>2026 Election Results — OC Scanner</title>
-<meta name="description" content="Live House, Senate and governor results for the Nov. 3, 2026 midterms, from state election offices, with race calls by OC Scanner." />
+<meta name="description" content="Live House, Senate, governor and California proposition results for the Nov. 3, 2026 midterms, from state election offices, with race calls by OC Scanner." />
 <meta name="theme-color" content="#E9ECEC" />
 
 <!-- EDIT-DOMAIN: set your canonical URL once you have your domain -->
@@ -56,7 +56,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="styles.css?v=2" />
-<link rel="stylesheet" href="elections/board.css?v=20261022b" />
+<link rel="stylesheet" href="elections/board.css?v=20261023a" />
 <style>
   /* Election board in the site's own palette and type (light + dark follow the site toggle) */
   .eb{
@@ -141,7 +141,7 @@
     <div class="block-head">
       <span class="eyebrow">Election 2026</span>
       <h2>Midterm results</h2>
-      <p>Every House seat, Senate race and governor&rsquo;s race on Nov.&nbsp;3, updated about every 10 minutes as states count.</p>
+      <p>Every House seat, Senate race and governor&rsquo;s race on Nov.&nbsp;3, plus California&rsquo;s 14 propositions, updated about every 10 minutes as states count.</p>
     </div>
     <div id="board"></div>
     <p class="eb-fine">Vote counts come from state election offices and are unofficial until each state certifies. States without a live results feed are filled in by the OC Scanner desk. Race calls are made by OC Scanner; a seat shows as won only once it has been called.</p>
@@ -185,7 +185,7 @@
 </footer>
 
 <script src="app.js"></script>
-<script src="elections/board.js?v=20261022b"></script>
+<script src="elections/board.js?v=20261023a"></script>
 <script>ElectionBoard.mount(document.getElementById('board'), { shapesUrl: 'elections/data/us-states.json', publicMode: true });</script>
 </body>
 </html>
