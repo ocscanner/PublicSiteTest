@@ -4,12 +4,12 @@
 <script>(function(){try{var t=localStorage.getItem('theme');if(!t)t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Story — OC Scanner</title>
+<title>News — OC Scanner</title>
 <meta name="description" content="OC Scanner monitors public safety, national security, intel, and geopolitical events across Orange County, SoCal, and beyond — live scanner traffic plus OSINT. Army veteran-operated." />
 <meta name="theme-color" content="#E9ECEC" />
 
 <!-- EDIT-DOMAIN: set your canonical URL once you have your domain -->
-<link rel="canonical" href="https://ocscanner.media/blog" />
+<link rel="canonical" href="https://ocscanner.media/news" />
 
 <!-- Open Graph (Facebook, IG, Discord, etc.) -->
 <meta property="og:site_name" content="OC Scanner" />
@@ -17,7 +17,7 @@
 <meta property="og:description" content="Public safety, national security, intel &amp; geopolitics — OC, SoCal &amp; beyond. Scanner + OSINT. Breaking news, first." />
 <meta property="og:type" content="website" />
 <!-- EDIT-DOMAIN: og:url and og:image must be ABSOLUTE urls on your live domain -->
-<meta property="og:url" content="https://ocscanner.media/blog" />
+<meta property="og:url" content="https://ocscanner.media/news" />
 <meta property="og:image" content="https://ocscanner.media/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -82,7 +82,7 @@
       <a href="live.html">Live</a>
       <a href="elections.html">Elections</a>
       <a href="space.html">Space</a>
-      <a href="blog.html">Blog</a>
+      <a href="news.html">News</a>
       <a href="community.html">Community</a>
       <a href="store.html">Store</a>
       <a href="tips.html">Tips</a>
@@ -109,12 +109,16 @@
 <!-- ===================== POST ===================== -->
 <article class="block" id="post">
   <div class="wrap wrap-narrow">
-    <a class="post-back" href="blog.html">&larr; All stories</a>
+    <a class="post-back" href="news.html">&larr; All news</a>
     <div class="post-head">
       <h1 id="post-title">Loading&hellip;</h1>
       <div id="post-meta" class="post-meta"></div>
     </div>
     <div id="post-body" class="post-article"></div>
+    <aside class="post-corrections" id="post-corrections" hidden>
+      <span class="post-corrections-k">Corrections</span>
+      <p>OC Scanner corrects errors promptly and notes the change on the story. Spotted a mistake? <a href="mailto:OCScannerNews@gmail.com?subject=Correction%20request">Request a correction</a> &middot; <a href="about.html#standards">Our standards</a></p>
+    </aside>
   </div>
 </article>
 <!-- ===================== FOOTER ===================== -->
@@ -131,7 +135,7 @@
         <a href="live.html">Live</a>
       <a href="elections.html">Elections</a>
         <a href="about.html#standards">Standards</a>
-        <a href="blog.html">Blog</a>
+        <a href="news.html">News</a>
       <a href="community.html">Community</a>
         <a href="store.html">Store</a>
         <a href="tips.html">Submit a tip</a>
@@ -156,6 +160,6 @@
 <script src="app.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="blog.js?v=5"></script>
+<script src="blog.js?v=6"></script>
 </body>
 </html>

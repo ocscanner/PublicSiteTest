@@ -1,13 +1,15 @@
 /* ============================================================
-   OC SCANNER — file-based blog engine
-   Posts live as markdown files in the /posts folder of your repo.
+   OC SCANNER — News engine (file-based)
+   Each news report is a markdown file in the /posts folder of the repo.
    To publish: drop a new .md file in /posts (with the front-matter
-   block shown in the sample posts) and commit. It appears automatically.
+   block below) and commit. It appears on News and the homepage.
 
-   Front matter a post can use:
+   Front matter a report can use:
      title:    Headline
-     date:     2026-10-24        (YYYY-MM-DD — newest leads the homepage)
-     tag:      Elections         (small label)
+     date:     2026-10-24        (YYYY-MM-DD publish date — newest leads the homepage)
+     updated:  2026-10-25        (optional — shows "Updated <date>" in the byline)
+     dateline: SANTA ANA         (optional — printed in caps before the first paragraph)
+     tag:      Public Safety     (section label)
      author:   Christian
      excerpt:  One-line summary  (otherwise the first paragraph is used)
      image:    posts/img/x.jpg   (optional photo on the homepage lead card)
@@ -68,7 +70,7 @@
   function list(){
     try{ var c = JSON.parse(sessionStorage.getItem('ocblog')||'null'); if(c && Date.now()-c.t < 300000) return Promise.resolve(c.posts); }catch(e){}
     return fetch(apiURL).then(function(r){ if(!r.ok) throw new Error('list '+r.status); return r.json(); }).then(function(files){
-      var mds = (files||[]).filter(function(f){ return /\.md$/i.test(f.name); });
+      var mds = (files||[]).filter(function(f){ return /\.md$/i.test(f.name) && f.name.charAt(0) !== '_'; });
       return Promise.all(mds.map(function(f){
         return fetch(f.download_url).then(function(r){ return r.text(); }).then(function(t){
           var fm = parseFM(t), slug = f.name.replace(/\.md$/i,'');
@@ -96,16 +98,16 @@
   }
 
   // ---- render whichever surface exists on this page ----
-  var listBox = document.getElementById('blog-list');   // blog.html
+  var listBox = document.getElementById('blog-list');   // news.html
   var postBody = document.getElementById('post-body');   // post.html
 
   if(listBox){
     list().then(function(posts){
       listBox.innerHTML = posts.length
         ? posts.map(card).join('')
-        : '<div class="blog-empty">No stories yet \u2014 your first post will appear here.</div>';
+        : '<div class="blog-empty">No reports have been published yet. Check back soon, or follow <a href="https://x.com/OC_Scanner" target="_blank" rel="noopener">@OC_Scanner</a> for breaking updates.</div>';
     }).catch(function(){
-      listBox.innerHTML = '<div class="blog-empty">Couldn\u2019t load stories right now. Make sure a <code>posts</code> folder exists in the repo.</div>';
+      listBox.innerHTML = '<div class="blog-empty">News couldn\u2019t be loaded right now. Please try again in a moment.</div>';
     });
   }
 
@@ -156,7 +158,7 @@
       var latest = document.getElementById('front-latest');
       if(!lead && latest && rest.length){
         latest.className = 'front-latest side-stories';
-        latest.innerHTML = '<div class="front-latest-head"><span>Latest from the desk</span><a href="blog.html">All &rarr;</a></div>'
+        latest.innerHTML = '<div class="front-latest-head"><span>Latest from the desk</span><a href="news.html">All news &rarr;</a></div>'
           + rest.slice(0,2).map(sideItem).join('');
         latest.hidden = false;
         rest = rest.slice(2);
@@ -174,23 +176,63 @@
   if(postBody){
     var slug = new URLSearchParams(location.search).get('p');
     var titleEl = document.getElementById('post-title'), metaEl = document.getElementById('post-meta');
+    var BACK = '<p><a href="news.html">Back to all news</a>.</p>';
     if(!slug){
-      if(titleEl) titleEl.textContent = 'No story specified';
-      postBody.innerHTML = '<p><a href="blog.html">Back to all stories</a>.</p>';
+      if(titleEl) titleEl.textContent = 'No report specified';
+      postBody.innerHTML = BACK;
     } else {
       getPost(slug).then(function(post){
         var m = post.meta;
-        document.title = (m.title || 'Story') + ' \u2014 OC Scanner';
+        document.title = (m.title || 'News') + ' — OC Scanner';
         if(titleEl) titleEl.textContent = m.title || slug;
+
+        // Byline: section · By author · Published date · Updated date
         if(metaEl) metaEl.innerHTML = [
           m.tag ? '<span class="blog-tag">'+esc(m.tag)+'</span>' : '',
-          m.date ? fmtDate(m.date) : '',
-          m.author ? 'By '+esc(m.author) : ''
-        ].filter(Boolean).join(' <span class="post-dot">\u00b7</span> ');
+          m.author ? '<span class="post-by">By '+esc(m.author)+'</span>' : '',
+          m.date ? 'Published <time datetime="'+esc(m.date)+'">'+fmtDate(m.date)+'</time>' : '',
+          (m.updated && m.updated !== m.date) ? 'Updated <time datetime="'+esc(m.updated)+'">'+fmtDate(m.updated)+'</time>' : ''
+        ].filter(Boolean).join(' <span class="post-dot">·</span> ');
+
         postBody.innerHTML = (window.marked && window.marked.parse) ? window.marked.parse(post.body) : '<pre>'+esc(post.body)+'</pre>';
+
+        // Dateline, e.g. "SANTA ANA —" at the start of the first paragraph
+        if(m.dateline){
+          var first = postBody.querySelector('p');
+          if(first){
+            var dl = document.createElement('span');
+            dl.className = 'post-dateline';
+            dl.textContent = String(m.dateline).toUpperCase() + ' — ';
+            first.insertBefore(dl, first.firstChild);
+          }
+        }
+
+        var corr = document.getElementById('post-corrections');
+        if(corr) corr.hidden = false;
+
+        // Structured data so search engines read this as a news article
+        try{
+          var page = 'https://ocscanner.media/post?p=' + encodeURIComponent(slug);
+          var ld = {
+            '@context':'https://schema.org', '@type':'NewsArticle',
+            headline: m.title || slug,
+            mainEntityOfPage: page,
+            datePublished: m.date || undefined,
+            dateModified: m.updated || m.date || undefined,
+            author: m.author ? { '@type':'Person', name: m.author } : { '@type':'Organization', name:'OC Scanner' },
+            publisher: { '@type':'NewsMediaOrganization', name:'OC Scanner', url:'https://ocscanner.media/' },
+            image: m.image ? [ /^https?:/.test(m.image) ? m.image : 'https://ocscanner.media/' + m.image.replace(/^\//,'') ] : [ 'https://ocscanner.media/og-image.png' ],
+            description: m.excerpt || undefined,
+            articleSection: m.tag || undefined
+          };
+          var tag = document.createElement('script');
+          tag.type = 'application/ld+json';
+          tag.textContent = JSON.stringify(ld);
+          document.head.appendChild(tag);
+        }catch(e){}
       }).catch(function(){
-        if(titleEl) titleEl.textContent = 'Story not found';
-        postBody.innerHTML = '<p>That story couldn\u2019t be loaded. <a href="blog.html">Back to all stories</a>.</p>';
+        if(titleEl) titleEl.textContent = 'Report not found';
+        postBody.innerHTML = '<p>That report couldn’t be loaded. It may have been moved or unpublished.</p>' + BACK;
       });
     }
   }

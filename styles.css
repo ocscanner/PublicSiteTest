@@ -729,3 +729,17 @@
     .nav.open a.nav-staff[hidden]{ display:none; }
     .nav.open .nav-staff-text{ position:static; width:auto; height:auto; margin:0; overflow:visible; clip:auto; }
   }
+
+  /* ============================================================
+     NEWS — newsroom details on reports
+     ============================================================ */
+  .news-standards-link{ color:var(--alert); border-bottom:1px solid var(--hairline); }
+  .news-standards-link:hover{ border-bottom-color:var(--alert); }
+  .post-by{ color:var(--ink); font-weight:500; }
+  .post-meta time{ white-space:nowrap; }
+  .post-dateline{ font-family:var(--mono); font-size:.82em; font-weight:700; letter-spacing:.06em; color:var(--ink); }
+  .post-corrections{ margin:40px 0 32px; padding:18px 20px; border:1px solid var(--hairline); border-left:3px solid var(--alert); border-radius:8px; background:var(--card); }
+  .post-corrections[hidden]{ display:none; }
+  .post-corrections-k{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--alert); }
+  .post-corrections p{ margin:8px 0 0; color:var(--slate); font-size:14.5px; line-height:1.6; }
+  .post-corrections a{ color:var(--alert); border-bottom:1px solid var(--hairline-2); }
