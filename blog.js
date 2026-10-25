@@ -161,6 +161,41 @@
     }).catch(function(){ var wrap = document.getElementById('latest-stories'); if(wrap) wrap.style.display='none'; });
   }
 
+  // ---- News-first front page (preview.html) ----
+  // A post leads only while it's fresh (or marked `featured: true`);
+  // otherwise the AI Digest keeps the lead slot so the top never goes stale.
+  var FRONT_FRESH_DAYS = 5;
+  var front = document.getElementById('front');
+  var frontLead = document.getElementById('front-lead');
+  if(front && frontLead){
+    list().then(function(posts){
+      var lead = posts.filter(function(p){ return p.featured; })[0]
+              || posts.filter(function(p){ return ageDays(p.date) <= FRONT_FRESH_DAYS; })[0];
+      if(lead){
+        frontLead.innerHTML = leadCard(lead);
+        frontLead.hidden = false;
+        front.setAttribute('data-mode','story');
+      }
+      var rest = posts.filter(function(p){ return p !== lead; });
+      // Digest leads → show the two newest posts under it as a compact list
+      var latest = document.getElementById('front-latest');
+      if(!lead && latest && rest.length){
+        latest.className = 'front-latest side-stories';
+        latest.innerHTML = '<div class="front-latest-head"><span>Latest from the desk</span><a href="blog.html">All &rarr;</a></div>'
+          + rest.slice(0,2).map(sideItem).join('');
+        latest.hidden = false;
+        rest = rest.slice(2);
+      }
+      rest = rest.slice(0,3);
+      var more = document.getElementById('more-stories');
+      var moreList = document.getElementById('more-stories-list');
+      if(more && moreList && rest.length){
+        moreList.innerHTML = rest.map(card).join('');
+        more.hidden = false;
+      }
+    }).catch(function(){ /* stay in digest mode */ });
+  }
+
   if(postBody){
     var slug = new URLSearchParams(location.search).get('p');
     var titleEl = document.getElementById('post-title'), metaEl = document.getElementById('post-meta');
