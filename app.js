@@ -47,3 +47,31 @@
   var menu = document.getElementById('menuToggle');
   if(menu) bar.insertBefore(btn, menu); else bar.appendChild(btn);
 })();
+
+
+/* Staff login link — settings live in site-config.js.
+   Only reveals the link; it never signs anyone in or calls the admin API.
+   Cloudflare Access on the admin site does the authentication. */
+(function(){
+  "use strict";
+  var link = document.getElementById('staffLogin');
+  if (!link) return;
+  var cfg = (window.OCS_CONFIG && window.OCS_CONFIG.staffLogin) || {};
+
+  var host = location.hostname;
+  var isPreview =
+    host === 'localhost' || host === '127.0.0.1' || host === '[::1]' ||
+    // Cloudflare branch/preview builds: <branch-or-hash>.<project>.pages.dev
+    // (the bare <project>.pages.dev address is production, so it doesn't count)
+    /^[^.]+\.[^.]+\.pages\.dev$/i.test(host);
+
+  if (!(cfg.enabled === true || (cfg.showOnPreviews === true && isPreview))) return;
+
+  // Only ever link to a real https address
+  var url;
+  try { url = new URL(cfg.url); } catch (e) { return; }
+  if (url.protocol !== 'https:') return;
+
+  link.href = url.href;
+  link.removeAttribute('hidden');
+})();
