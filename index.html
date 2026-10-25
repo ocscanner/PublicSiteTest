@@ -108,7 +108,7 @@
 <a id="top"></a>
 <!-- ===================== FRONT PAGE =====================
      Lead story (fresh or featured post) beside The Wire.
-     No fresh post? The AI Digest takes over the lead slot.
+     No fresh post? The Briefing takes over the lead slot.
      data-mode is set by blog.js: "digest" (default) or "story". -->
 <section class="front" id="front" data-mode="digest">
   <div class="wrap">
@@ -116,26 +116,25 @@
       <div class="front-main">
         <div id="front-lead" hidden></div>
         <div class="ocw front-digest">
-      <!-- AI DIGEST -->
+      <!-- THE BRIEFING (AI-assisted summary; same worker/code as before) -->
       <div class="ocw-digest">
         <span class="front-kicker">Right now · Situation summary</span>
         <div class="ocw-digest-head">
           <div class="ocw-digest-title">
             <span class="t">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/><circle cx="12" cy="12" r="2"/></svg>
-              AI Digest
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+              The Briefing
             </span>
-            <span class="badge">Claude</span>
           </div>
           <div class="ocw-digest-actions">
             <span class="ocw-digest-ts" id="ocw-digest-ts"></span>
-            <button class="ocw-refresh" id="ocw-digest-refresh" onclick="ocwRefreshDigest()" aria-label="Refresh digest">↺ Refresh</button>
+            <button class="ocw-refresh" id="ocw-digest-refresh" onclick="ocwRefreshDigest()" aria-label="Refresh briefing">↺ Refresh</button>
           </div>
         </div>
         <div class="ocw-digest-body" id="ocw-digest-text">
-          <span style="color:#7a8a98;font-style:italic">Generating intelligence digest…</span>
+          <span style="color:#7a8a98;font-style:italic">Preparing the briefing…</span>
         </div>
-        <div class="ocw-digest-foot">Digest refreshes ~8 hrs · wire ~15 min</div>
+        <div class="ocw-digest-foot">AI-assisted summary of public news feeds · refreshes ~8 hrs</div>
       </div>
 
         </div>
@@ -488,8 +487,8 @@
       el.innerHTML = '<span style="color:#7a8a98">Waiting for feeds to load…</span>';
       return;
     }
-    if(force) el.innerHTML = '<span style="color:#7a8a98;font-style:italic">Refreshing intelligence digest…</span>';
-    else if(el.querySelector('span')) el.innerHTML = '<span style="color:#7a8a98;font-style:italic">Generating intelligence digest…</span>';
+    if(force) el.innerHTML = '<span style="color:#7a8a98;font-style:italic">Refreshing the briefing…</span>';
+    else if(el.querySelector('span')) el.innerHTML = '<span style="color:#7a8a98;font-style:italic">Preparing the briefing…</span>';
     try{
       const res = await fetch(`${WORKER}/ai-digest`, {
         method:'POST',
@@ -505,7 +504,7 @@
           ts.textContent = 'Updated ' + when.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
         }
       } else {
-        el.innerHTML = `<span style="color:#ff6b4d">Digest unavailable${data.error ? ': '+data.error : ''}.</span>`;
+        el.innerHTML = `<span style="color:#ff6b4d">Briefing unavailable${data.error ? ': '+data.error : ''}.</span>`;
       }
     }catch(e){
       el.innerHTML = '<span style="color:#ff6b4d">Error reaching AI service.</span>';
