@@ -55,7 +55,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=3" />
+<link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
 <!-- ===================== TOP BAR ===================== -->
@@ -101,41 +101,20 @@
   </div></div>
 </div>
 
-<!-- NEW-STORY FLAG: filled by blog.js only when a post is fresh (≤ 7 days) or marked featured -->
-<a class="story-flag" id="story-flag" href="blog.html" hidden></a>
-
 <a id="top"></a>
-<!-- ===================== HERO ===================== -->
-<section class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow">Public Safety · National Security · Intel · OSINT</span>
-      <h1>When it breaks, <span class="hl">you'll hear it here first.</span></h1>
-      <p class="lede">OC Scanner tracks <b>public safety, national security, intel, and geopolitical events</b> across Orange County, SoCal, and beyond — pairing live scanner traffic with OSINT to break verified news first.</p>
-      <div class="hero-cta">
-        <!-- EDIT-LINK: your X / Twitter profile -->
-        <a class="btn btn-primary" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.9h3.7l-8 9.1 9.4 12.4h-7.4l-5.8-7.6-6.6 7.6H.5l8.5-9.8L0 1.9h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.4h2L6.5 4H4.4l13.2 17.3Z"/></svg>
-          Follow on X
-        </a>
-        <!-- EDIT-LINK: your Instagram profile -->
-        <a class="btn btn-ghost" href="https://instagram.com/OC_Scanner" target="_blank" rel="noopener">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-          Instagram
-        </a>
-        <!-- secondary CTA: send a tip -->
-        <a class="btn btn-ghost" href="mailto:OCScannerNews@gmail.com?subject=OC%20Scanner%20Tip">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-          Send a tip
-        </a>
-      </div>
-      <div class="cred"><span>Army veteran-operated</span><span>OSINT-driven</span><span>Independent</span></div>
-    </div>
-
-    <!-- ===== SIGNATURE: live AI digest + "The Wire" (worker-powered) ===== -->
-    <div class="ocw ocw-hero">
+<!-- ===================== FRONT PAGE =====================
+     Lead story (fresh or featured post) beside The Wire.
+     No fresh post? The AI Digest takes over the lead slot.
+     data-mode is set by blog.js: "digest" (default) or "story". -->
+<section class="front" id="front" data-mode="digest">
+  <div class="wrap">
+    <div class="front-grid">
+      <div class="front-main">
+        <div id="front-lead" hidden></div>
+        <div class="ocw front-digest">
       <!-- AI DIGEST -->
       <div class="ocw-digest">
+        <span class="front-kicker">Right now · Situation summary</span>
         <div class="ocw-digest-head">
           <div class="ocw-digest-title">
             <span class="t">
@@ -155,6 +134,10 @@
         <div class="ocw-digest-foot">Digest refreshes ~8 hrs · wire ~15 min</div>
       </div>
 
+        </div>
+        <div id="front-latest" class="front-latest" hidden></div>
+      </div>
+      <div class="ocw front-wire">
       <!-- THE WIRE -->
       <div class="ocw-wire">
         <div class="ocw-wire-head">
@@ -176,23 +159,53 @@
       </div>
 
       <p class="ocw-note">Aggregated from public news feeds and linked to source. Category &amp; status tags are auto-derived, not editorial confirmation.</p>
+      </div>
     </div>
   </div>
 </section>
 
-
-<!-- ===================== LATEST STORIES (from the blog) ===================== -->
-<section class="block" id="latest-stories">
+<!-- ===================== MORE STORIES ===================== -->
+<section class="block more-stories" id="more-stories" hidden>
   <div class="wrap">
     <div class="stories-head">
       <div>
         <span class="eyebrow">From the Desk</span>
-        <h2>Latest Stories</h2>
+        <h2>More Stories</h2>
       </div>
       <a class="blog-more" href="blog.html">All stories &rarr;</a>
     </div>
-    <!-- Newest (or `featured: true`) post leads; the next three stack beside it -->
-    <div id="home-stories" class="home-stories"></div>
+    <div id="more-stories-list" class="blog-list"></div>
+  </div>
+</section>
+
+<!-- ===================== ABOUT BAND (was the hero) ===================== -->
+<section class="about-band">
+  <div class="wrap about-band-grid">
+    <div>
+      <span class="eyebrow">Public Safety · National Security · Intel · OSINT</span>
+      <h2>When it breaks, <span class="hl">you'll hear it here first.</span></h2>
+      <p class="about-band-lede">OC Scanner tracks <b>public safety, national security, intel, and geopolitical events</b> across Orange County, SoCal, and beyond — pairing live scanner traffic with OSINT to break verified news first.</p>
+    </div>
+    <div class="about-band-side">
+      <div class="hero-cta">
+        <!-- EDIT-LINK: your X / Twitter profile -->
+        <a class="btn btn-primary" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 1.9h3.7l-8 9.1 9.4 12.4h-7.4l-5.8-7.6-6.6 7.6H.5l8.5-9.8L0 1.9h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.4h2L6.5 4H4.4l13.2 17.3Z"/></svg>
+          Follow on X
+        </a>
+        <!-- EDIT-LINK: your Instagram profile -->
+        <a class="btn btn-ghost" href="https://instagram.com/OC_Scanner" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          Instagram
+        </a>
+        <!-- secondary CTA: send a tip -->
+        <a class="btn btn-ghost" href="mailto:OCScannerNews@gmail.com?subject=OC%20Scanner%20Tip">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+          Send a tip
+        </a>
+      </div>
+      <div class="cred"><span>Army veteran-operated</span><span>OSINT-driven</span><span>Independent</span></div>
+    </div>
   </div>
 </section>
 
@@ -517,6 +530,6 @@
   setInterval(refreshTimes, 60 * 1000);
 })();
 </script>
-<script src="blog.js?v=4"></script>
+<script src="blog.js?v=5"></script>
 </body>
 </html>

@@ -13,8 +13,8 @@
      image:    posts/img/x.jpg   (optional photo on the homepage lead card)
      featured: true              (pins this post as the homepage lead,
                                   even when newer posts exist)
-   A post dated within the last 7 days also gets the red
-   "New on the blog" bar at the top of the homepage.
+   A post dated within the last 5 days (or featured) leads the homepage;
+   otherwise the AI Digest leads and recent posts list under it.
 
    EDIT-REPO: point these at your repo. Right now: ocscanner/PublicSiteTest.
    (When you move to a different repo or the ocscanner.github.io root repo,
@@ -58,7 +58,7 @@
     var dt = new Date(String(d)+'T00:00:00');
     return isNaN(dt) ? Infinity : (Date.now()-dt.getTime())/86400000;
   }
-  var FRESH_DAYS = 7; // how long a new post gets the "New on the blog" bar
+  var FRESH_DAYS = 7; // how long the lead card shows the red "New" label
 
   var apiURL ='https://api.github.com/repos/'+REPO.owner+'/'+REPO.repo+'/contents/'+REPO.dir+'?ref='+REPO.branch;
   function rawURL(slug){
@@ -97,7 +97,6 @@
 
   // ---- render whichever surface exists on this page ----
   var listBox = document.getElementById('blog-list');   // blog.html
-  var homeBox = document.getElementById('home-stories'); // index.html strip
   var postBody = document.getElementById('post-body');   // post.html
 
   if(listBox){
@@ -137,31 +136,7 @@
       + '</a>';
   }
 
-  if(homeBox){
-    list().then(function(posts){
-      var wrap = document.getElementById('latest-stories');
-      if(!posts.length){ if(wrap) wrap.style.display = 'none'; return; }
-      // Lead = a post marked `featured: true`, otherwise the newest one.
-      var lead = posts.filter(function(p){ return p.featured; })[0] || posts[0];
-      var rest = posts.filter(function(p){ return p !== lead; }).slice(0,3);
-      homeBox.className = 'home-stories' + (rest.length ? '' : ' solo');
-      homeBox.innerHTML = leadCard(lead)
-        + (rest.length ? '<div class="side-stories">'+rest.map(sideItem).join('')+'</div>' : '');
-
-      // Above-the-fold bar so a fresh post isn't buried under the hero
-      var flag = document.getElementById('story-flag');
-      if(flag && (lead.featured || ageDays(lead.date) <= FRESH_DAYS)){
-        flag.href = href(lead);
-        flag.innerHTML = '<span class="wrap story-flag-inner">'
-          + '<span class="story-flag-label">'+(lead.featured && ageDays(lead.date) > FRESH_DAYS ? 'Featured' : 'New on the blog')+'</span>'
-          + '<span class="story-flag-title">'+esc(lead.title)+'</span>'
-          + '<span class="story-flag-go">Read &rarr;</span></span>';
-        flag.hidden = false;
-      }
-    }).catch(function(){ var wrap = document.getElementById('latest-stories'); if(wrap) wrap.style.display='none'; });
-  }
-
-  // ---- News-first front page (preview.html) ----
+  // ---- News-first front page (index.html) ----
   // A post leads only while it's fresh (or marked `featured: true`);
   // otherwise the AI Digest keeps the lead slot so the top never goes stale.
   var FRONT_FRESH_DAYS = 5;
