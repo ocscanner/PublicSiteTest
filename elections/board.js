@@ -122,6 +122,7 @@
         S.chamber = t.dataset.chamber; store.set('chamber', S.chamber); S.limit = 60; S.countyData = null;
         // Stay zoomed on the same state when switching between House, Senate and Governors
         S.stateFilter = S.chamber === 'house' ? S.zoomSt : null;
+        S.sub = null;
         if (isArea(S.chamber)) S.group = 'all';
         if (isArea(S.chamber) && !AD()) loadLocal(AREA_OF[S.chamber]);
         renderAll();
@@ -134,9 +135,9 @@
       if (t.dataset.qopen) { openRace(t.dataset.qopen, t.dataset.qtab); return; }
       if (t.dataset.gotoqueue != null) { $('queue').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
       if (t.dataset.group) { S.group = t.dataset.group; S.limit = 60; renderMap(); renderList(); return; }
-      if (t.dataset.back != null) { unzoom(); return; }
-      if (t.dataset.fips) { showTip(e, countySummary(t.dataset.fips)); return; }
-      if (t.dataset.dist) { showTip(e, districtSummary(t.dataset.dist)); select(t.dataset.dist, { sheet: false }); return; }
+      if (t.dataset.back != null) { if (S.sub) zoomOut(); else unzoom(); return; }
+      if (t.dataset.fips) { showTip(e, countySummary(t.dataset.fips)); zoomInto(t); return; }
+      if (t.dataset.dist) { showTip(e, districtSummary(t.dataset.dist)); zoomInto(t); select(t.dataset.dist, { sheet: false }); return; }
       if (t.dataset.filter) { S.filter = t.dataset.filter; S.limit = 60; renderTools(); renderList(); return; }
       if (t.dataset.sort) { S.sort = t.dataset.sort; renderTools(); renderList(); return; }
       if (t.dataset.clearstate != null) { if (S.zoomSt) unzoom(); else { S.stateFilter = null; renderTools(); renderList(); renderMap(); } return; }
@@ -147,6 +148,7 @@
       if (t.dataset.race) { select(t.dataset.race); return; }
     });
     $('search').addEventListener('input', e => { S.q = e.target.value.trim().toLowerCase(); S.limit = 60; renderList(); });
+    root.addEventListener('change', e => { const k = e.target?.dataset?.apref; if (k) alertsPref(k, e.target.checked); });
     // One tooltip handler for both the US map and the county maps
     $('map').addEventListener('mousemove', e => {
       const box = $('map'), tip = box.querySelector('.eb-tip');
@@ -221,6 +223,7 @@
     }
     async function zoomTo(st) {
       if (S.zoomSt !== st) S.countyData = null;
+      S.sub = null;
       S.zoomSt = st;
       renderMap();
       await loadZoomShapes(st);
@@ -231,7 +234,7 @@
       if (S.zoomSt === st) renderMap();
     }
     function unzoom() {
-      S.zoomSt = null; S.countyData = null;
+      S.zoomSt = null; S.countyData = null; S.sub = null;
       if (S.chamber === 'house') S.stateFilter = null;
       renderTools(); renderList(); renderMap();
       animateTo(FULL_VB());
@@ -248,6 +251,44 @@
       if (w / h > aspect) { const nh = w / aspect; y0 -= (nh - h) / 2; h = nh; }
       else { const nw = h * aspect; x0 -= (nw - w) / 2; w = nw; }
       return [x0, y0, w, h];
+    }
+    /* One level closer: inside a zoomed state, tapping a county or district zooms in on it and its neighbors.
+       "← State" steps back out. Shapes that already fill most of the state view don't zoom further. */
+    function zoomInto(p) {
+      if (!S.zoomSt || !p?.getBBox) return;
+      const id = p.dataset.fips || p.dataset.dist;
+      if (S.sub?.id === id) return;
+      const [, , sw] = targetVB(), [, , fw, fh] = FULL_VB(), aspect = fw / fh;
+      const bb = p.getBBox();
+      let w = Math.max(bb.width, bb.height * aspect) * (p.dataset.fips ? 4 : 2.6);   // the shape plus its neighbors (counties are small)
+      if (w >= sw * 0.8) { if (S.sub) zoomOut(); return; }            // already big enough at state view
+      w = Math.max(w, sw / 14);                                       // never closer than ~14x the state view
+      const h = w / aspect, cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+      S.sub = { id, name: p.querySelector('title')?.textContent.split(/[:\n]/)[0] || id };
+      setTimeout(() => { const tip = $('map')?.querySelector('.eb-tip'); if (tip) tip.hidden = true; }, 0);   // it would point at the old spot
+      animateTo([cx - w / 2, cy - h / 2, w, h]);
+      sizeDistrictLabels(w);
+      markSub();
+      renderZoomBar();
+    }
+    const markSub = () => $('map')?.querySelectorAll('[data-r="counties"] path').forEach(x => x.classList.toggle('sub', S.sub?.id === x.dataset.fips));
+    function zoomOut() {
+      S.sub = null;
+      markSub();
+      const to = targetVB();
+      animateTo(to);
+      sizeDistrictLabels(to[2]);
+      renderZoomBar();
+    }
+    // District numbers stay about 12-21 px on screen at any zoom and screen size (skipped where a district is too small to hold one)
+    function sizeDistrictLabels(W) {
+      const px = $('map')?.querySelector('svg.eb-us')?.getBoundingClientRect().width || 1000;
+      const k = W / px;                                               // map units per screen pixel
+      $('map')?.querySelectorAll('[data-r="dlabels"] text').forEach(t => {
+        const sz = +t.dataset.s, fs = Math.min(Math.max(sz * 0.25, 12 * k), 21 * k);
+        t.style.fontSize = `${fs.toFixed(3)}px`; t.style.strokeWidth = `${(fs * 0.18).toFixed(3)}px`;
+        t.style.display = sz < fs * 1.9 ? 'none' : '';
+      });
     }
     let anim = 0;
     function animateTo(to) {
@@ -481,6 +522,7 @@
         // No data yet: let the state's own color show through; a state with no race on this tab goes gray
         p.style.fill = has ? countyFill(p.dataset.fips) : race || S.chamber === 'house' ? 'transparent' : 'var(--eb-wait)';
         p.querySelector('title').textContent = countySummary(p.dataset.fips);
+        p.classList.toggle('sub', S.sub?.id === p.dataset.fips);
       });
 
       // districts of the zoomed state (House tab)
@@ -491,10 +533,8 @@
         const [x0, y0, x1, y1] = dsh.bbox, span = Math.max(x1 - x0, y1 - y0), W = targetVB()[2];
         dg.innerHTML = Object.entries(dsh.districts).map(([id, c]) => `<path data-dist="${id}" d="${c.d}"><title>${esc(id)}</title></path>`).join('');
         // District numbers: sized to the zoomed view (about 12-21 px on screen), skipped where a district is too small to hold one
-        dl.innerHTML = Object.values(dsh.districts).map(c => {
-          const fs = Math.min(Math.max(c.s * 0.25, W * 0.012), W * 0.021);
-          return c.s < fs * 1.9 ? '' : `<text x="${c.c[0]}" y="${c.c[1]}" style="font-size:${fs.toFixed(2)}px;stroke-width:${(fs * 0.18).toFixed(2)}px">${c.n === 'AL' ? '' : c.n}</text>`;
-        }).join('');
+        dl.innerHTML = Object.values(dsh.districts).filter(c => c.n !== 'AL').map(c => `<text x="${c.c[0]}" y="${c.c[1]}" data-s="${c.s}">${c.n}</text>`).join('');
+        sizeDistrictLabels(S.sub ? (S.vb || targetVB())[2] : W);
         // Flip stripes sized to the state, so they read the same in Rhode Island and Texas
         const sw = (span / 70).toFixed(2);
         box.querySelectorAll('pattern[id^="eb-dflip-"]').forEach(pt => {
@@ -521,7 +561,8 @@
         const nSeats = house ? (S.data?.races || []).filter(r => r.state === z && r.chamber === 'house').length : 0;
         const title = race ? `${race.name} by county` : house ? `${stateName(z)}: ${nSeats} House ${nSeats === 1 ? 'seat' : 'districts'}` : `${stateName(z)}: no ${word} race this year`;
         const selHouse = house && S.byId?.get(S.selected)?.state === z && S.byId.get(S.selected).chamber === 'house';
-        bar.innerHTML = `<button type="button" class="eb-back" data-back>← US map</button><b>${esc(title)}</b>${race || selHouse ? '<button type="button" class="eb-back eb-narrow" data-act="opensheet">Race details</button>' : ''}`;
+        S.zoomTitle = title; S.zoomDetails = !!(race || selHouse);
+        renderZoomBar();
       }
       let note = '';
       if (z && house) {
@@ -648,6 +689,14 @@
         }).join('')}</div>
       </div>`;
       $('key').innerHTML = `<span><i style="background:var(--eb-yes)"></i>Yes</span><span><i style="background:var(--eb-no)"></i>No</span><span>Unofficial results from the ${esc(L.source)}. ${esc(L.note || '')} California counts mail ballots for weeks, so close ones can take a while to call.</span>${L.simulation ? '<span><b>Rehearsal data</b></span>' : ''}`;
+    }
+
+    function renderZoomBar() {
+      const bar = $('map')?.querySelector('[data-r="cbar"]');
+      if (!bar || !S.zoomSt) return;
+      const back = S.sub ? `← ${esc(stateName(S.zoomSt))}` : '← US map';
+      const title = S.sub ? `${esc(S.zoomTitle || '')} · ${esc(S.sub.name)}` : `${esc(S.zoomTitle || '')}<small class="eb-zhint"> · tap a ${S.chamber === 'house' ? 'district' : 'county'} to zoom in</small>`;
+      bar.innerHTML = `<button type="button" class="eb-back" data-back>${back}</button><b>${title}</b>${S.zoomDetails ? '<button type="button" class="eb-back eb-narrow" data-act="opensheet">Race details</button>' : ''}`;
     }
 
     function selectState(st) {
@@ -927,7 +976,10 @@
       renderList(); renderDetail();
       if (S.chamber === 'props') renderMap();
       // Senate and governor races zoom the map into their state's counties
-      if (r && r.chamber === 'house' && S.chamber === 'house') { if (S.zoomSt !== r.state) zoomTo(r.state); else renderMap(); }
+      if (r && r.chamber === 'house' && S.chamber === 'house') {
+        if (S.zoomSt !== r.state) zoomTo(r.state);
+        else { renderMap(); if (S.sub && S.sub.id !== id) zoomInto($('map').querySelector(`path[data-dist="${id}"]`)); }
+      }
       if (r && r.chamber !== 'house' && r.chamber === S.chamber) {
         if (S.zoomSt === r.state) { if (S.countyData?.raceId !== r.id) { S.countyData = null; renderMap(); loadCounties().then(() => renderMap()); } }
         else zoomTo(r.state);
@@ -957,6 +1009,14 @@
           } catch (e) { toast(`DDHQ feed check failed: ${e.message}`); }
           return;
         }
+        case 'tools-alerts': S.tools = S.tools === 'alerts' ? null : 'alerts'; renderQueue(); if (S.tools) pushRefresh(); return;
+        case 'tools-log': S.tools = S.tools === 'log' ? null : 'log'; renderQueue(); if (S.tools) logLoad(); return;
+        case 'alerts-on': return alertsOn();
+        case 'alerts-off': return alertsOff();
+        case 'alerts-test': return alertsTest();
+        case 'log-note': return logNote();
+        case 'log-copy': return logCopy();
+        case 'log-refresh': return logLoad();
         case 'opensheet': S.sheetOpen = true; return renderDetail();
         case 'watch': return toggleWatch(r.id);
         case 'copypost': return copy(areaOfId(r.id) ? localPost(r) : postText(r), 'Post copied');
@@ -1021,7 +1081,7 @@
       const t = prompt('Desk token (set on the Worker as DESK_TOKEN):');
       if (!t) return;
       const r = await fetch(`${S.api}/v1/desk/check`, { headers: { Authorization: `Bearer ${t.trim()}` } }).catch(() => null);
-      if (r?.ok) { S.token = t.trim(); store.set('token', S.token); toast('Desk mode on'); renderAll(); loadQueue(); }
+      if (r?.ok) { S.token = t.trim(); store.set('token', S.token); toast('Desk mode on'); renderAll(); loadQueue(); pushRefresh(); }
       else toast('That token didn’t work.');
     }
 
@@ -1124,7 +1184,128 @@
       box.innerHTML = `<h4>Call queue<small>${items.length ? `${queueCount()} waiting` : ''}</small></h4>
         ${bulkHtml ? `<div class="eb-qbulk">${bulkHtml}</div>` : ''}
         <div class="eb-qwatch">${esc(ddhq + ap)}${q?.simulation ? ' · <b>Rehearsal</b>' : ''} · <button type="button" class="eb-linkbtn" data-act="testwatch">Test DDHQ feed</button></div>
+        ${toolsHtml()}
         <div class="eb-qlist">${body}</div>`;
+    }
+
+    /* ── Desk tools: phone alerts and the issue log (IntelHQ desk only) ── */
+    const deskApi = async (method, path, body) => {
+      const r = await fetch(`${S.api}/v1/desk/${path}`, { method, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${S.token}` }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || `Error ${r.status}`);
+      return j;
+    };
+    const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    const deviceLabel = () => {
+      const u = navigator.userAgent;
+      const dev = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) || isIOS() ? 'iPad' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows PC' : 'Device';
+      const br = /Edg\//.test(u) ? 'Edge' : /Firefox\//.test(u) ? 'Firefox' : /Chrome\//.test(u) ? 'Chrome' : /Safari\//.test(u) ? 'Safari' : '';
+      return `${dev}${br && !standalone() ? ` (${br})` : standalone() ? ' (Home Screen app)' : ''}`;
+    };
+    const keyBytes = b64 => { const s = atob(b64.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((b64.length + 3) % 4)); return Uint8Array.from(s, c => c.charCodeAt(0)); };
+    S.push = S.push || { prefs: null, endpoint: null, info: null, busy: false };
+    async function pushRefresh() {
+      if (!S.token || S.pub) return;
+      try {
+        const [info, sub] = await Promise.all([deskApi('GET', 'push'), pushSupported() ? navigator.serviceWorker.getRegistration().then(r => r?.pushManager.getSubscription()) : null]);
+        S.push.info = info;
+        const mine = sub && info.devices.find(d => d.endpoint === sub.endpoint);
+        S.push.endpoint = mine ? sub.endpoint : null;
+        S.push.prefs = mine ? mine.prefs : S.push.prefs;
+      } catch (e) { S.push.error = e.message === 'Failed to fetch' ? 'Can’t reach the results service' : e.message; }
+      renderQueue();
+    }
+    async function alertsOn() {
+      if (S.push.busy) return;
+      S.push.busy = true; renderQueue();
+      try {
+        if ((await Notification.requestPermission()) !== 'granted') throw new Error('Notifications are blocked for IntelHQ in this browser’s settings');
+        const reg = await navigator.serviceWorker.ready;
+        const info = S.push.info || await deskApi('GET', 'push');
+        let sub = await reg.pushManager.getSubscription();
+        if (sub) await sub.unsubscribe().catch(() => {});                // start clean (it may belong to an old key)
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(info.publicKey) });
+        await deskApi('POST', 'push', { action: 'subscribe', subscription: sub.toJSON(), prefs: S.push.prefs || info.defaults || undefined, label: deviceLabel() });
+        toast('Alerts are on for this device. A welcome alert is on its way.');
+      } catch (e) { toast(`Alerts not turned on: ${e.message}`); }
+      S.push.busy = false;
+      pushRefresh();
+    }
+    async function alertsOff() {
+      try {
+        const sub = await (await navigator.serviceWorker.getRegistration())?.pushManager.getSubscription();
+        if (sub) { await deskApi('POST', 'push', { action: 'unsubscribe', endpoint: sub.endpoint }); await sub.unsubscribe(); }
+        toast('Alerts are off for this device');
+      } catch (e) { toast(`Couldn’t turn alerts off: ${e.message}`); }
+      pushRefresh();
+    }
+    async function alertsTest() {
+      try { const r = await deskApi('POST', 'push', { action: 'test', endpoint: S.push.endpoint }); toast(`Test alert sent${r.devices > 1 ? '' : ''}. It should arrive in a few seconds.`); }
+      catch (e) { toast(`Test failed: ${e.message}`); }
+    }
+    async function alertsPref(k, on) {
+      const prefs = { ...(S.push.prefs || {}), [k]: on };
+      S.push.prefs = prefs;
+      if (!S.push.endpoint) return renderQueue();
+      try { await deskApi('POST', 'push', { action: 'prefs', endpoint: S.push.endpoint, prefs }); toast('Saved'); }
+      catch (e) { toast(`Not saved: ${e.message}`); }
+      pushRefresh();
+    }
+    async function logLoad() {
+      try { S.issueLog = (await deskApi('GET', 'log')).entries; S.issueLogError = null; } catch (e) { S.issueLogError = e.message === 'Failed to fetch' ? 'Can’t reach the results service' : e.message; }
+      renderQueue();
+    }
+    async function logNote() {
+      const race = S.selected && raceOf(S.selected);
+      const note = prompt(`What didn’t work?${race ? ` (tagged to ${race.id})` : ''}\nThis goes in the issue log for the 2028 rebuild.`);
+      if (!note?.trim()) return;
+      try { await deskApi('POST', 'log', { note: note.trim(), raceId: race?.id || null }); toast('Logged'); if (S.tools === 'log') logLoad(); }
+      catch (e) { toast(`Not logged: ${e.message}`); }
+    }
+    async function logCopy() {
+      try {
+        const r = await fetch(`${S.api}/v1/desk/log?format=text`, { headers: { Authorization: `Bearer ${S.token}` }, cache: 'no-store' });
+        if (!r.ok) throw new Error(`Error ${r.status}`);
+        await copy(await r.text(), 'Issue log copied');
+      } catch (e) { toast(`Couldn’t copy the log: ${e.message}`); }
+    }
+    function toolsHtml() {
+      const on = !!S.push.endpoint;
+      const row = `<div class="eb-qtools">
+        <button type="button" class="eb-btn${S.tools === 'alerts' ? ' sel' : ''}" data-act="tools-alerts">Phone alerts: ${on ? '<b>on</b>' : 'off'}</button>
+        <button type="button" class="eb-btn" data-act="log-note">Log issue</button>
+        <button type="button" class="eb-btn${S.tools === 'log' ? ' sel' : ''}" data-act="tools-log">Issue log</button></div>`;
+      if (S.tools === 'alerts') return row + `<div class="eb-qtool">${alertsHtml()}</div>`;
+      if (S.tools === 'log') return row + `<div class="eb-qtool">${logHtml()}</div>`;
+      return row;
+    }
+    function alertsHtml() {
+      const info = S.push.info;
+      if (!pushSupported()) {
+        return isIOS() && !standalone()
+          ? '<p>On iPhone, alerts work from the Home Screen app: tap <b>Share</b> → <b>Add to Home Screen</b>, open IntelHQ from the Home Screen, sign in to the desk there, and turn alerts on. (iOS 16.4 or later.)</p>'
+          : '<p>This browser can’t receive alerts. Chrome, Edge or Firefox on a computer or Android phone, or IntelHQ added to an iPhone Home Screen, can.</p>';
+      }
+      if (!info) return `<p>${esc(S.push.error || 'Loading…')}</p>`;
+      const prefs = S.push.prefs || info.defaults || {};
+      const boxes = Object.entries(info.types).map(([k, label]) => `<label class="eb-qpref"><input type="checkbox" data-apref="${k}"${prefs[k] ? ' checked' : ''}> ${esc(label)}</label>`).join('');
+      const others = info.devices.filter(d => d.endpoint !== S.push.endpoint);
+      const list = info.devices.length ? `<p class="eb-qsmall">Alerts on: ${info.devices.map(d => esc(d.label) + (d.endpoint === S.push.endpoint ? ' (this one)' : '') + (d.lastError ? ` <span class="warnt">last alert failed: ${esc(d.lastError)}</span>` : '')).join(', ')}</p>` : '';
+      const btns = S.push.endpoint
+        ? '<button type="button" class="eb-btn" data-act="alerts-test">Send a test alert</button><button type="button" class="eb-btn" data-act="alerts-off">Turn off on this device</button>'
+        : `<button type="button" class="eb-btn" data-act="alerts-on"${S.push.busy ? ' disabled' : ''}>${S.push.busy ? 'Turning on…' : 'Turn on alerts on this device'}</button>${others.length ? '<button type="button" class="eb-btn" data-act="alerts-test">Test the other devices</button>' : ''}`;
+      return `<p>Your phone buzzes when something needs you, even with IntelHQ closed. Each alert opens the race here. Starts with results on Nov 3; send a test any time.</p>
+        <div class="eb-qprefs">${boxes}</div><div class="eb-actions">${btns}</div>${list}`;
+    }
+    function logHtml() {
+      if (!S.issueLog) return `<p>${esc(S.issueLogError || 'Loading…')}</p>`;
+      const t = at => new Date(at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const rows = S.issueLog.slice(0, 30).map(e => `<li><span class="qage">${t(e.at)}</span> <b>${esc(e.label)}</b> ${esc(e.title)}${e.detail ? `<div class="qwhy">${esc(e.detail.slice(0, 160))}</div>` : ''}</li>`).join('');
+      return `<p>Everything that broke or needed a hand on election night, written automatically (feeds failing, calls that didn’t match, conflicts, counts typed in, withdrawn calls) plus your notes. After the election it becomes the 2028 rebuild list.</p>
+        <div class="eb-actions"><button type="button" class="eb-btn" data-act="log-copy">Copy the whole log</button><button type="button" class="eb-btn" data-act="log-refresh">Refresh</button></div>
+        ${rows ? `<ul class="eb-ilog">${rows}</ul>` : '<p class="eb-qsmall">Nothing logged yet.</p>'}${S.issueLog.length > 30 ? `<p class="eb-qsmall">${S.issueLog.length - 30} older entries are in the copied log.</p>` : ''}`;
     }
     // "Publish all" groups: DDHQ calls, AP calls, high-confidence model suggestions. Never conflicts.
     function bulkGroups(items) {
@@ -1207,6 +1388,7 @@
     }
     // The desk's queue refreshes every 20 seconds, even in a background tab, so new calls chime
     loadQueue();
+    pushRefresh();
     const qTimer = setInterval(() => { if (S.token && !S.pub) loadQueue(); }, 20000);
     setInterval(() => { if (S.queue && !document.hidden) renderQueue(); }, 30000);   // keep the ages current
     return {
