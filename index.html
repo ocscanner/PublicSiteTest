@@ -55,7 +55,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=2" />
+<link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
 <!-- ===================== TOP BAR ===================== -->
@@ -100,6 +100,9 @@
     <span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span><span>When it breaks, you hear it here</span><span>Public safety, first</span><span>Verify first &middot; post second</span><span>Eyes on OC &amp; beyond</span><span>Independent &middot; OSINT-driven</span><span>Got a tip? Send it in</span>
   </div></div>
 </div>
+
+<!-- NEW-STORY FLAG: filled by blog.js only when a post is fresh (≤ 7 days) or marked featured -->
+<a class="story-flag" id="story-flag" href="blog.html" hidden></a>
 
 <a id="top"></a>
 <!-- ===================== HERO ===================== -->
@@ -181,13 +184,15 @@
 <!-- ===================== LATEST STORIES (from the blog) ===================== -->
 <section class="block" id="latest-stories">
   <div class="wrap">
-    <div class="block-head">
-      <span class="eyebrow">The Blog</span>
-      <h2>Latest Stories</h2>
-      <p>Longer-form reporting and analysis from the OC Scanner desk.</p>
+    <div class="stories-head">
+      <div>
+        <span class="eyebrow">From the Desk</span>
+        <h2>Latest Stories</h2>
+      </div>
+      <a class="blog-more" href="blog.html">All stories &rarr;</a>
     </div>
-    <div id="home-stories" class="blog-list"></div>
-    <a class="blog-more" href="blog.html">All stories &rarr;</a>
+    <!-- Newest (or `featured: true`) post leads; the next three stack beside it -->
+    <div id="home-stories" class="home-stories"></div>
   </div>
 </section>
 
@@ -512,6 +517,6 @@
   setInterval(refreshTimes, 60 * 1000);
 })();
 </script>
-<script src="blog.js"></script>
+<script src="blog.js?v=2"></script>
 </body>
 </html>

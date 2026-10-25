@@ -4,6 +4,18 @@
    To publish: drop a new .md file in /posts (with the front-matter
    block shown in the sample posts) and commit. It appears automatically.
 
+   Front matter a post can use:
+     title:    Headline
+     date:     2026-10-24        (YYYY-MM-DD — newest leads the homepage)
+     tag:      Elections         (small label)
+     author:   Christian
+     excerpt:  One-line summary  (otherwise the first paragraph is used)
+     image:    posts/img/x.jpg   (optional photo on the homepage lead card)
+     featured: true              (pins this post as the homepage lead,
+                                  even when newer posts exist)
+   A post dated within the last 7 days also gets the red
+   "New on the blog" bar at the top of the homepage.
+
    EDIT-REPO: point these at your repo. Right now: ocscanner/PublicSiteTest.
    (When you move to a different repo or the ocscanner.github.io root repo,
    update owner/repo/branch here — this is the only place it lives.)
@@ -38,7 +50,17 @@
     return p.length > 170 ? p.slice(0,170)+'\u2026' : p;
   }
 
-  var apiURL = 'https://api.github.com/repos/'+REPO.owner+'/'+REPO.repo+'/contents/'+REPO.dir+'?ref='+REPO.branch;
+  function readMins(body){
+    var words = String(body||'').replace(/[#*_>`\[\]()!-]/g,' ').split(/\s+/).filter(Boolean).length;
+    return Math.max(1, Math.round(words/220));
+  }
+  function ageDays(d){
+    var dt = new Date(String(d)+'T00:00:00');
+    return isNaN(dt) ? Infinity : (Date.now()-dt.getTime())/86400000;
+  }
+  var FRESH_DAYS = 7; // how long a new post gets the "New on the blog" bar
+
+  var apiURL ='https://api.github.com/repos/'+REPO.owner+'/'+REPO.repo+'/contents/'+REPO.dir+'?ref='+REPO.branch;
   function rawURL(slug){
     return 'https://raw.githubusercontent.com/'+REPO.owner+'/'+REPO.repo+'/'+REPO.branch+'/'+REPO.dir+'/'+encodeURIComponent(slug)+'.md';
   }
@@ -50,7 +72,9 @@
       return Promise.all(mds.map(function(f){
         return fetch(f.download_url).then(function(r){ return r.text(); }).then(function(t){
           var fm = parseFM(t), slug = f.name.replace(/\.md$/i,'');
-          return { slug:slug, title:fm.meta.title||slug, date:fm.meta.date||'', tag:fm.meta.tag||'', author:fm.meta.author||'', excerpt:fm.meta.excerpt||firstPara(fm.body) };
+          return { slug:slug, title:fm.meta.title||slug, date:fm.meta.date||'', tag:fm.meta.tag||'', author:fm.meta.author||'',
+                   excerpt:fm.meta.excerpt||firstPara(fm.body), image:fm.meta.image||'',
+                   featured:/^(true|yes|1)$/i.test(fm.meta.featured||''), mins:readMins(fm.body) };
         }).catch(function(){ return null; });
       }));
     }).then(function(posts){
@@ -86,11 +110,54 @@
     });
   }
 
+  function href(p){ return 'post.html?p='+encodeURIComponent(p.slug); }
+  function metaLine(p){
+    return [p.date ? fmtDate(p.date) : '', p.mins ? p.mins+' min read' : ''].filter(Boolean).join(' · ');
+  }
+  function leadCard(p){
+    var fresh = ageDays(p.date) <= FRESH_DAYS;
+    return '<a class="lead-story'+(p.image?' has-img':'')+'" href="'+href(p)+'">'
+      + (p.image ? '<div class="lead-img"><img src="'+esc(p.image)+'" alt="" loading="lazy"></div>' : '')
+      + '<div class="lead-body">'
+      +   '<div class="lead-kicker">'
+      +     (fresh ? '<span class="lead-new">New</span>' : '')
+      +     (p.tag ? '<span class="blog-tag">'+esc(p.tag)+'</span>' : '')
+      +   '</div>'
+      +   '<h3>'+esc(p.title)+'</h3>'
+      +   (p.excerpt ? '<p>'+esc(p.excerpt)+'</p>' : '')
+      +   '<div class="lead-meta">'+esc(metaLine(p))+(p.author?' · By '+esc(p.author):'')+'</div>'
+      +   '<span class="lead-cta">Read the story &rarr;</span>'
+      + '</div></a>';
+  }
+  function sideItem(p){
+    return '<a class="side-story" href="'+href(p)+'">'
+      + (p.tag ? '<span class="blog-tag">'+esc(p.tag)+'</span>' : '')
+      + '<h4>'+esc(p.title)+'</h4>'
+      + '<div class="side-meta">'+esc(metaLine(p))+'</div>'
+      + '</a>';
+  }
+
   if(homeBox){
     list().then(function(posts){
       var wrap = document.getElementById('latest-stories');
       if(!posts.length){ if(wrap) wrap.style.display = 'none'; return; }
-      homeBox.innerHTML = posts.slice(0,3).map(card).join('');
+      // Lead = a post marked `featured: true`, otherwise the newest one.
+      var lead = posts.filter(function(p){ return p.featured; })[0] || posts[0];
+      var rest = posts.filter(function(p){ return p !== lead; }).slice(0,3);
+      homeBox.className = 'home-stories' + (rest.length ? '' : ' solo');
+      homeBox.innerHTML = leadCard(lead)
+        + (rest.length ? '<div class="side-stories">'+rest.map(sideItem).join('')+'</div>' : '');
+
+      // Above-the-fold bar so a fresh post isn't buried under the hero
+      var flag = document.getElementById('story-flag');
+      if(flag && (lead.featured || ageDays(lead.date) <= FRESH_DAYS)){
+        flag.href = href(lead);
+        flag.innerHTML = '<span class="wrap story-flag-inner">'
+          + '<span class="story-flag-label">'+(lead.featured && ageDays(lead.date) > FRESH_DAYS ? 'Featured' : 'New on the blog')+'</span>'
+          + '<span class="story-flag-title">'+esc(lead.title)+'</span>'
+          + '<span class="story-flag-go">Read &rarr;</span></span>';
+        flag.hidden = false;
+      }
     }).catch(function(){ var wrap = document.getElementById('latest-stories'); if(wrap) wrap.style.display='none'; });
   }
 
