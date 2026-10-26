@@ -15,10 +15,11 @@
    ============================================================ */
 window.OCS_CONFIG = {
   staffLogin: {
-    url: 'https://admin.ocscanner.media/',
+    // Staging admin for now; switch to https://admin.ocscanner.media/ once production is built.
+    url: 'https://staging-admin.ocscanner.media/',
 
     // false = link is hidden on the live site.
-    enabled: false,
+    enabled: true,
 
     // While disabled, the link still shows on these addresses so you can
     // check how it looks before launch (it won't be seen by the public):
