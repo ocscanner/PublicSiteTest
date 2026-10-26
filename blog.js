@@ -116,6 +116,38 @@
       + '</a>';
   }
 
+
+  var ICONS = {
+    x:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+    fb:'<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14 8.5V6.6c0-.8.2-1.3 1.4-1.3H17V2.2c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.4-4 4.1v2.3H8v3.3h2.6V22H14V11.8h2.6l.4-3.3z"/></svg>',
+    link:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+    more:'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>'
+  };
+  function renderShare(slug, title){
+    var url = 'https://ocscanner.media/post?p=' + encodeURIComponent(slug);
+    var x  = 'https://x.com/intent/post?text=' + encodeURIComponent(title) + '&url=' + encodeURIComponent(url) + '&via=OC_Scanner';
+    var fb = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    var canNative = !!(navigator.share);
+    var html = '<span class="share-k">Share</span>'
+      + '<a class="share-btn" href="'+x+'" target="_blank" rel="noopener" aria-label="Share on X">'+ICONS.x+'<span>X</span></a>'
+      + '<a class="share-btn" href="'+fb+'" target="_blank" rel="noopener" aria-label="Share on Facebook">'+ICONS.fb+'<span>Facebook</span></a>'
+      + '<button type="button" class="share-btn" data-copy aria-label="Copy link">'+ICONS.link+'<span>Copy link</span></button>'
+      + (canNative ? '<button type="button" class="share-btn" data-native aria-label="More ways to share">'+ICONS.more+'<span>More</span></button>' : '');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-share]'), function(bar){
+      bar.innerHTML = html;
+      bar.hidden = false;
+      var copy = bar.querySelector('[data-copy]');
+      copy.addEventListener('click', function(){
+        var done = function(){ var l = copy.querySelector('span'); l.textContent = 'Copied'; copy.classList.add('ok');
+          setTimeout(function(){ l.textContent = 'Copy link'; copy.classList.remove('ok'); }, 2000); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function(){ window.prompt('Copy this link:', url); });
+        else window.prompt('Copy this link:', url);
+      });
+      var nat = bar.querySelector('[data-native]');
+      if (nat) nat.addEventListener('click', function(){ navigator.share({ title: title, url: url }).catch(function(){}); });
+    });
+  }
+
   // ---- render whichever surface exists on this page ----
   var listBox = document.getElementById('blog-list');   // news.html
   var postBody = document.getElementById('post-body');   // post.html
@@ -225,6 +257,10 @@
             first.insertBefore(dl, first.firstChild);
           }
         }
+
+        // Share buttons. Links use the clean story address so X, Facebook,
+        // iMessage and Discord fetch this story's headline and thumbnail.
+        renderShare(slug, m.title || slug);
 
         var corr = document.getElementById('post-corrections');
         if(corr) corr.hidden = false;
