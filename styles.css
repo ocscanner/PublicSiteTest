@@ -673,11 +673,11 @@
 
 /* ---- About band (the old hero, condensed) ---- */
 .about-band{ border-top:1px solid var(--hairline-2); padding:72px 0; background:var(--card); }
-.about-band + .front{ border-top:1px solid var(--hairline-2); padding-top:44px; }
 .about-band-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:56px; align-items:center; }
-.about-band h2{ font-size:clamp(32px,4.2vw,52px); font-weight:700; letter-spacing:-.022em; line-height:1.05; margin-top:18px; }
-.about-band h2 .hl{ color:var(--alert); }
-.about-band-lede{ font-family:var(--display); margin-top:20px; max-width:52ch; color:var(--slate); font-size:19px; line-height:1.55; padding-left:18px; border-left:3px solid var(--alert); }
+.front-intro{ padding:48px 0 0; }
+.front-intro h2, .about-band h2{ font-size:clamp(32px,4.2vw,52px); font-weight:700; letter-spacing:-.022em; line-height:1.05; margin-top:18px; }
+.front-intro h2 .hl, .about-band h2 .hl{ color:var(--alert); }
+.about-band-lede{ font-family:var(--display); margin-top:0; max-width:52ch; color:var(--slate); font-size:19px; line-height:1.55; padding-left:18px; border-left:3px solid var(--alert); }
 .about-band-lede b{ color:var(--ink); font-weight:600; }
 .about-band-side .hero-cta{ margin-top:0; }
 .about-band-side .cred{ margin-top:26px; }
@@ -688,6 +688,7 @@
   .front-wire .ocw-scroll{ max-height:420px; }
 }
 @media (max-width:560px){
+  .front-intro{ padding-top:30px; }
   .front{ padding:20px 0 44px; }
   .front[data-mode="digest"] .ocw-digest{ padding:20px 18px; }
   .front[data-mode="digest"] .ocw-digest-body{ font-size:17.5px; }
