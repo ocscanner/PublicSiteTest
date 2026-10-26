@@ -1,3 +1,14 @@
+/* Moved to ocscanner.media: anyone on the old GitHub address
+   (ocscanner.github.io/PublicSiteTest/...) is sent to the same page there. */
+(function(){
+  "use strict";
+  if (location.hostname !== 'ocscanner.github.io') return;
+  var path = location.pathname.replace(/^\/PublicSiteTest(\/|$)/i, '/');
+  path = path.replace(/(^|\/)index\.html$/i, '$1').replace(/\.html$/i, '');
+  if (path === '/blog') path = '/news';
+  location.replace('https://ocscanner.media' + path + location.search + location.hash);
+})();
+
 (function(){
   "use strict";
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

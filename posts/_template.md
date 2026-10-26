@@ -6,6 +6,7 @@ dateline: Santa Ana
 tag: Public Safety
 author: Christian
 excerpt: One sentence: who, what, where, when. Shown on the News page and homepage.
+draft: true
 ---
 <!--
 HOW TO PUBLISH A NEWS REPORT
@@ -18,7 +19,8 @@ HOW TO PUBLISH A NEWS REPORT
    - dateline: city the story is reported from; shown in caps before the first paragraph.
    - tag:      section label, e.g. Public Safety, Fire, Traffic, Elections, Weather.
    - Optional: image: posts/img/photo.jpg   and   featured: true  (pins it as the homepage lead)
-3. Write the report below and commit. It appears on the site in about a minute.
+3. Delete the "draft: true" line when it is ready (drafts never publish).
+4. Write the report below and commit. It appears on the site in about a minute.
 
 Style reminders: lead with the most important fact; attribute every claim
 ("according to OCFA", "Santa Ana police said"); label anything unconfirmed.

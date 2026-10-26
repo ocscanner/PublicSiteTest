@@ -67,26 +67,45 @@
     return 'https://raw.githubusercontent.com/'+REPO.owner+'/'+REPO.repo+'/'+REPO.branch+'/'+REPO.dir+'/'+encodeURIComponent(slug)+'.md';
   }
 
-  function list(){
-    try{ var c = JSON.parse(sessionStorage.getItem('ocblog')||'null'); if(c && Date.now()-c.t < 300000) return Promise.resolve(c.posts); }catch(e){}
+  // On Cloudflare the build writes posts/index.json, so the site reads its own
+  // files. On GitHub Pages (no build step) it falls back to the GitHub API.
+  function listFromSite(){
+    return fetch('posts/index.json', {cache:'no-cache'}).then(function(r){
+      if(!r.ok) throw new Error('index '+r.status);
+      return r.json();
+    });
+  }
+  function listFromGitHub(){
     return fetch(apiURL).then(function(r){ if(!r.ok) throw new Error('list '+r.status); return r.json(); }).then(function(files){
       var mds = (files||[]).filter(function(f){ return /\.md$/i.test(f.name) && f.name.charAt(0) !== '_'; });
       return Promise.all(mds.map(function(f){
         return fetch(f.download_url).then(function(r){ return r.text(); }).then(function(t){
           var fm = parseFM(t), slug = f.name.replace(/\.md$/i,'');
+          if(/^(true|yes|1)$/i.test(fm.meta.draft||'')) return null;
           return { slug:slug, title:fm.meta.title||slug, date:fm.meta.date||'', tag:fm.meta.tag||'', author:fm.meta.author||'',
                    excerpt:fm.meta.excerpt||firstPara(fm.body), image:fm.meta.image||'',
                    featured:/^(true|yes|1)$/i.test(fm.meta.featured||''), mins:readMins(fm.body) };
         }).catch(function(){ return null; });
       }));
-    }).then(function(posts){
-      posts = posts.filter(Boolean).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+    });
+  }
+  function list(){
+    try{ var c = JSON.parse(sessionStorage.getItem('ocblog')||'null'); if(c && Date.now()-c.t < 300000) return Promise.resolve(c.posts); }catch(e){}
+    return listFromSite().catch(listFromGitHub).then(function(posts){
+      posts = (posts||[]).filter(Boolean).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
       try{ sessionStorage.setItem('ocblog', JSON.stringify({t:Date.now(), posts:posts})); }catch(e){}
       return posts;
     });
   }
   function getPost(slug){
-    return fetch(rawURL(slug)).then(function(r){ if(!r.ok) throw new Error('post '+r.status); return r.text(); }).then(parseFM);
+    function grab(url){ return fetch(url).then(function(r){ if(!r.ok) throw new Error('post '+r.status); return r.text(); }); }
+    return grab('posts/'+encodeURIComponent(slug)+'.md')
+      .catch(function(){ return grab(rawURL(slug)); })
+      .then(function(t){
+        var p = parseFM(t);
+        if(/^(true|yes|1)$/i.test(p.meta.draft||'')) throw new Error('draft');
+        return p;
+      });
   }
   function card(p){
     return '<a class="blog-card" href="post.html?p='+encodeURIComponent(p.slug)+'">'

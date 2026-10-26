@@ -1,0 +1,19 @@
+# OC Scanner — Cloudflare Pages redirects (first match wins)
+
+# Old GitHub Pages paths: ocscanner.github.io/PublicSiteTest/... → same page here
+/PublicSiteTest        /                 301
+/PublicSiteTest/       /                 301
+/PublicSiteTest/*      /:splat           301
+
+# The blog became News
+/blog                  /news             301
+/blog.html             /news             301
+
+# Short links for bios and posts
+/tip                   /tips             302
+/support               /donate           302
+/shop                  https://oc-scanner-shop.fourthwall.com   302
+/merch                 https://oc-scanner-shop.fourthwall.com   302
+/x                     https://x.com/OC_Scanner                 302
+/instagram             https://instagram.com/OC_Scanner         302
+/youtube               https://youtube.com/@OC_Scanner          302
