@@ -17,7 +17,9 @@
   const TAB_OF_AREA = { OC: 'local', CAP: 'props', LA: 'la' };
   const isCounty = ch => ch === 'local' || ch === 'la';
   const isArea = ch => ch in AREA_OF;
-  const areaOfId = id => Object.keys(PREFIX).find(a => String(id || '').startsWith(PREFIX[a])) || null;
+  // Louisiana's national races (LA-01, LA-SEN, LA-GOV) share the LA- prefix with LA County races (LA-MAYOR, LA-CD3), so rule them out first
+  const LOUISIANA_ID = /^LA-(\d+|SEN|GOV)$/;
+  const areaOfId = id => { id = String(id || ''); return LOUISIANA_ID.test(id) ? null : Object.keys(PREFIX).find(a => id.startsWith(PREFIX[a])) || null; };
   const GROUP_ORDER = ['county', 'lacity', 'city', 'school', 'district', 'judicial', 'measure', 'legislature', 'prop'];
   // A measure call is a single "Yes" or "No"
   const measureWord = winners => winners?.length === 1 && /^yes$/i.test(winners[0]) ? 'passes' : winners?.length === 1 && /^no$/i.test(winners[0]) ? 'fails' : null;
@@ -125,6 +127,8 @@
         // Stay zoomed on the same state when switching between House, Senate and Governors
         S.stateFilter = S.chamber === 'house' ? S.zoomSt : null;
         S.sub = null;
+        // A race picked on another tab doesn't stay in the side panel
+        if (S.selected && tabOfId(S.selected) !== S.chamber) { S.selected = null; S.sheetOpen = false; }
         if (isArea(S.chamber)) S.group = 'all';
         if (isArea(S.chamber) && !AD()) loadLocal(AREA_OF[S.chamber]);
         renderAll();
@@ -214,6 +218,7 @@
     function setLocal(area, l) { S.areas[area] = l; S.localById = new Map(Object.values(S.areas).flatMap(a => a.contests.map(c => [c.id, c]))); }
     async function loadLocal(area) { const l = await fetchLocal(area); if (l) { setLocal(area, l); renderAll(); } }
     const raceOf = id => S.byId?.get(id) || S.localById.get(id);
+    const tabOfId = id => TAB_OF_AREA[areaOfId(id)] || S.byId?.get(id)?.chamber || null;
 
     /* Zoom: clicking a state animates the national map into that state and draws its counties */
     const FULL_VB = () => String(S.shapes?.viewBox || '0 0 960 600').split(/\s+/).map(Number);
@@ -408,7 +413,9 @@
         if (L && !S.sim && L.contests.every(c => c.status === 'waiting'))
           h += S.chamber === 'props'
             ? `<div class="eb-note">No proposition results yet. The Secretary of State posts its first count after polls close at 8 p.m. on Nov 3; this tab picks up each update within about 10 minutes.</div>`
-            : `<div class="eb-note">No Orange County results yet. The Registrar of Voters posts its first count after polls close at 8 p.m. on Nov 3; this tab picks up each update within about 10 minutes.</div>`;
+            : S.chamber === 'la'
+              ? `<div class="eb-note">No LA County results yet. The Registrar-Recorder/County Clerk posts its first count after polls close at 8 p.m. on Nov 3; this tab picks up each update within about 10 minutes.</div>`
+              : `<div class="eb-note">No Orange County results yet. The Registrar of Voters posts its first count after polls close at 8 p.m. on Nov 3; this tab picks up each update within about 10 minutes.</div>`;
       } else if (d && !S.sim && d.races.every(r => r.status === 'waiting')) {
         const day = new Date(d.election + 'T12:00:00').toLocaleDateString([], { month: 'long', day: 'numeric' });
         h += S.pub
