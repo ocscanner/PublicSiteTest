@@ -15,6 +15,9 @@
      image:    posts/img/x.jpg   (optional photo on the homepage lead card)
      featured: true              (pins this post as the homepage lead,
                                   even when newer posts exist)
+     homepage: false             (publishes on News and at its own link,
+                                  but keeps it off the homepage; delete the
+                                  line when it should go on the front page)
    A post dated within the last 5 days (or featured) leads the homepage;
    otherwise the AI Digest leads and recent posts list under it.
 
@@ -84,7 +87,7 @@
           if(/^(true|yes|1)$/i.test(fm.meta.draft||'')) return null;
           return { slug:slug, title:fm.meta.title||slug, date:fm.meta.date||'', tag:fm.meta.tag||'', author:fm.meta.author||'',
                    excerpt:fm.meta.excerpt||firstPara(fm.body), image:fm.meta.image||'',
-                   featured:/^(true|yes|1)$/i.test(fm.meta.featured||''), mins:readMins(fm.body) };
+                   featured:/^(true|yes|1)$/i.test(fm.meta.featured||''), home:!/^(false|no|0)$/i.test(fm.meta.homepage||''), mins:readMins(fm.body) };
         }).catch(function(){ return null; });
       }));
     });
@@ -197,6 +200,7 @@
   var frontLead = document.getElementById('front-lead');
   if(front && frontLead){
     list().then(function(posts){
+      posts = posts.filter(function(p){ return p.home !== false; });   // `homepage: false` posts stay off the front page
       var lead = posts.filter(function(p){ return p.featured; })[0]
               || posts.filter(function(p){ return ageDays(p.date) <= FRONT_FRESH_DAYS; })[0];
       if(lead){

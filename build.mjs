@@ -58,6 +58,7 @@ if (existsSync('posts')) {
       slug, title: meta.title || slug, date: meta.date || '', updated: meta.updated || '',
       tag: meta.tag || '', author: meta.author || '', excerpt: meta.excerpt || firstPara(body),
       image: meta.image || '', featured: /^(true|yes|1)$/i.test(meta.featured || ''), mins: readMins(body),
+      home: !/^(false|no|0)$/i.test(meta.homepage || ''),
     });
   }
 }
