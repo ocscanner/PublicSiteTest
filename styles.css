@@ -616,6 +616,7 @@
   .post-article li{ margin:6px 0; }
   .post-article blockquote{ border-left:3px solid var(--alert); margin:20px 0; padding:4px 0 4px 18px; color:var(--slate); font-style:italic; }
   .post-article img{ max-width:100%; border-radius:10px; margin:14px 0; }
+  .post-article video{ display:block; width:100%; height:auto; aspect-ratio:16/9; border-radius:10px; margin:14px 0; background:#101316; }
   .post-article code{ font-family:var(--mono); font-size:.9em; background:var(--card-2); padding:2px 6px; border-radius:5px; }
   .post-article pre{ background:var(--card-2); padding:16px; border-radius:10px; overflow:auto; margin:0 0 18px; }
   .post-article pre code{ background:none; padding:0; }

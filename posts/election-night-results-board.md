@@ -12,7 +12,7 @@ draft: true
 
 Election night usually means jumping between a dozen tabs. Our **Elections** page puts it in one place: every House seat, Senate race and governor's race in the Nov. 3 midterms, California's 14 statewide propositions, and the local races on ballots in Orange and Los Angeles counties. It's live now at **[ocscanner.media/elections](https://ocscanner.media/elections)**, and results start filling in after polls close on Nov. 3.
 
-![The Elections page: balance of power for the House, Senate and governors, with tabs for each part of the ballot](posts/img/elections/board.jpg)
+<video class="post-video" controls playsinline preload="none" poster="posts/img/elections/intro-poster.jpg" aria-label="A 48-second tour of the OC Scanner Elections page" style="display:block;width:100%;height:auto;aspect-ratio:16/9;border-radius:10px;margin:14px 0;background:#101316"><source src="posts/img/elections/intro.mp4" type="video/mp4"></video>
 
 ## The national board
 
