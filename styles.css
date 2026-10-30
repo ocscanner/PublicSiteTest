@@ -327,7 +327,7 @@
   .bn-sub{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:3px;
     font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--alert); }
   .bn-sub i{ flex:1; height:1px; background:var(--hairline); }
-  .bn-sub i.d{ flex:none; width:4px; height:4px; border-radius:50%; background:var(--alert); }
+  .bn-sub i.d{ flex:none; width:4px; height:4px; border-radius:50%; background:var(--alert); transform:translateY(-1.5px); margin-left:-.24em; }
   .bn-flag{ flex:none; width:15px; height:8px; margin-left:-1px; border-radius:1px; box-shadow:0 0 0 .5px rgba(0,0,0,.18); }
   .brand .brand-mark{ width:34px; height:34px; }
   .nav{ display:flex; align-items:center; gap:22px; }
