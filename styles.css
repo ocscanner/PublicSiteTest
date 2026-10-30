@@ -322,7 +322,7 @@
   .brand-name b{ color:var(--alert); font-weight:800; }
 
   /* ---- Brand nameplate: "OC SCANNER / News · Network 🇺🇸" between bars ---- */
-  .bn-plate{ display:flex; flex-direction:column; line-height:1; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); padding:4px 0 3px; }
+  .bn-plate{ display:flex; flex-direction:column; line-height:1; }
   .bn-plate .brand-name{ line-height:1; }
   .bn-sub{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:3px;
     font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--alert); }
