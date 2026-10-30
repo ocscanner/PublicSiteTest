@@ -320,6 +320,16 @@
   .brand-mark .ring{ stroke:var(--alert); }
   .brand-name{ font-family:var(--display); font-weight:700; font-size:23px; letter-spacing:.03em; text-transform:uppercase; }
   .brand-name b{ color:var(--alert); font-weight:800; }
+
+  /* ---- Brand nameplate: "OC SCANNER / News · Network 🇺🇸" between bars ---- */
+  .bn-plate{ display:flex; flex-direction:column; line-height:1; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); padding:4px 0 3px; }
+  .bn-plate .brand-name{ line-height:1; }
+  .bn-sub{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:3px;
+    font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:.24em; text-transform:uppercase; color:var(--alert); }
+  .bn-sub i{ flex:1; height:1px; background:var(--hairline); }
+  .bn-sub i.d{ flex:none; width:4px; height:4px; border-radius:50%; background:var(--alert); }
+  .bn-flag{ flex:none; width:15px; height:8px; margin-left:-1px; border-radius:1px; box-shadow:0 0 0 .5px rgba(0,0,0,.18); }
+  .brand .brand-mark{ width:34px; height:34px; }
   .nav{ display:flex; align-items:center; gap:22px; }
   .nav a{ font-family:var(--mono); font-size:12.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--slate); transition:color .2s var(--ease); }
   .nav a:hover{ color:var(--ink); }
