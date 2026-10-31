@@ -376,10 +376,11 @@
         d.items.forEach(function (it) { track.appendChild(itemNode(it)); });
         d.items.forEach(function (it) { track.appendChild(itemNode(it, true)); });
         wrap.appendChild(track);
-        requestAnimationFrame(function () {
+        // set the speed once laid out (a timer, since background tabs skip animation frames)
+        setTimeout(function () {
           var half = track.scrollWidth / 2;
-          track.style.animationDuration = Math.max(30, Math.round(half / CRAWL_PX_PER_SEC)) + 's';
-        });
+          if (half > 0) track.style.animationDuration = Math.max(30, Math.round(half / CRAWL_PX_PER_SEC)) + 's';
+        }, 50);
       } else {
         var slot = el('div', 'tk-slot');
         wrap.appendChild(slot);
