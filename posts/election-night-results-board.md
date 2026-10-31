@@ -7,7 +7,6 @@ author: OC Scanner
 excerpt: The OC Scanner Elections page tracks every House, Senate and governor race, California's 14 propositions, and local races in Orange and LA counties on Nov. 3. Here's how it works.
 image: posts/img/elections/header.jpg
 featured: true
-homepage: false
 ---
 
 Election night usually means jumping between a dozen tabs. Our **Elections** page puts it in one place: every House seat, Senate race and governor's race in the Nov. 3 midterms, California's 14 statewide propositions, and the local races on ballots in Orange and Los Angeles counties. It's live now at **[ocscanner.media/elections](https://ocscanner.media/elections)**, and results start filling in after polls close on Nov. 3.
