@@ -768,3 +768,62 @@
   .share-btn svg{ width:15px; height:15px; flex:none; }
   .share-btn:hover{ border-color:var(--alert); color:var(--alert); }
   .share-btn.ok{ border-color:#1f8a4c; color:#1f8a4c; }
+
+  /* ============================================================
+     LIVE TICKER — built by ticker.js from real feeds. Until it loads
+     (or if every feed fails) the static .ticker strip above shows.
+     ============================================================ */
+  .ticker.tk-live{ --tk-ocs:var(--alert); --tk-wx:#1B5E8A; --tk-iw:#1F4E79; --tk-launch:#8A5A00; --tk-elex:#5B3FA8;
+    --tk-pin-bg:#FBE9E7; min-height:44px; }
+  :root[data-theme="dark"] .ticker.tk-live{ --tk-wx:#7FB6E6; --tk-iw:#93B6E0; --tk-launch:#E6B54D; --tk-elex:#B9A6F2; --tk-pin-bg:rgba(240,69,58,.14); }
+  .tk-label{ border:0; margin:0; cursor:pointer; transition:background .15s var(--ease); }
+  .tk-label:hover{ background:var(--alert-dk); }
+  .tk-label:focus-visible{ outline:2px solid var(--ink); outline-offset:-4px; }
+  .tk-paused .tk-label::before{ animation:none; opacity:.55; }
+
+  .tk-wrap{ flex:1; min-width:0; overflow:hidden; display:flex; align-items:center;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 2%,#000 97%,transparent); mask-image:linear-gradient(90deg,transparent,#000 2%,#000 97%,transparent); }
+  .tk-track{ display:inline-flex; align-items:center; white-space:nowrap; animation:scrollx 60s linear infinite; will-change:transform; }
+  .ticker:hover .tk-track, .ticker:focus-within .tk-track, .tk-paused .tk-track{ animation-play-state:paused; }
+
+  .tk-item{ display:inline-flex; align-items:baseline; gap:10px; padding:12px 24px; border-right:1px solid var(--hairline-2); color:var(--ink); white-space:nowrap; }
+  .tk-item:hover .tk-text{ color:var(--alert); }
+  .tk-tag{ font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--slate); }
+  .tk-ocs .tk-tag{ color:var(--tk-ocs); } .tk-wx .tk-tag{ color:var(--tk-wx); } .tk-iw .tk-tag{ color:var(--tk-iw); }
+  .tk-launch .tk-tag{ color:var(--tk-launch); } .tk-elex .tk-tag{ color:var(--tk-elex); } .tk-alert .tk-tag{ color:var(--alert); }
+  .tk-new{ font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#fff; background:var(--alert); padding:2px 6px; border-radius:2px; align-self:center; }
+  .tk-text{ font-family:var(--body); font-size:14px; font-weight:500; line-height:1.35; transition:color .15s var(--ease); }
+  .tk-meta{ font-family:var(--mono); font-size:11px; color:var(--slate); letter-spacing:.03em; }
+
+  .tk-now{ flex:none; display:flex; flex-direction:column; justify-content:center; gap:1px; padding:0 18px; border-left:1px solid var(--hairline); background:var(--card-2); line-height:1.2; color:var(--ink); }
+  .tk-now-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--slate); }
+  .tk-now-v{ font-family:var(--mono); font-size:13px; font-weight:700; }
+
+  /* active NWS warning for Orange County: pinned at the front */
+  .ticker.tk-alerting{ border-bottom:2px solid var(--alert-dk); }
+  .tk-alerting .tk-label{ background:var(--alert-dk); }
+  .tk-pins{ flex:0 1 auto; max-width:55%; min-width:0; display:flex; background:var(--tk-pin-bg); border-right:1px solid rgba(169,26,16,.25); }
+  .tk-pins .tk-item{ border-right:0; min-width:0; }
+  .tk-pins .tk-tag{ color:var(--alert-dk); flex:none; }
+  :root[data-theme="dark"] .tk-pins .tk-tag{ color:#F2857A; }
+  .tk-pins .tk-text{ font-weight:600; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+
+  /* one item at a time: phones and "reduce motion" */
+  .tk-rotate .tk-wrap{ -webkit-mask-image:none; mask-image:none; }
+  .tk-slot{ flex:1; min-width:0; transition:opacity .25s var(--ease), transform .25s var(--ease); }
+  .tk-slot.tk-out{ opacity:0; transform:translateY(-4px); }
+  .tk-rotate .tk-item{ display:flex; flex-wrap:wrap; align-items:center; column-gap:8px; row-gap:3px; white-space:normal; border-right:0; padding:9px 14px; }
+  .tk-rotate .tk-text{ order:3; flex-basis:100%; font-size:14.5px; line-height:1.3;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .tk-count{ flex:none; align-self:center; padding:0 12px 0 4px; font-family:var(--mono); font-size:10.5px; color:var(--slate-dim); }
+  .tk-crawl .tk-count{ display:none; }
+
+  .tk-slot .tk-alert{ background:var(--tk-pin-bg); min-height:100%; }
+  .tk-slot .tk-alert .tk-tag{ color:var(--alert-dk); }
+  :root[data-theme="dark"] .tk-slot .tk-alert .tk-tag{ color:#F2857A; }
+  .tk-rotate .tk-slot{ align-self:stretch; display:flex; }
+  .tk-rotate .tk-slot > .tk-item{ flex:1; }
+
+  @media (max-width:600px){
+    .tk-now{ display:none; }
+  }
