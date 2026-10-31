@@ -299,7 +299,7 @@
   }
 
   /* ---------- render ---------- */
-  var state = { data: null, sig: '', paused: false, idx: 0, timer: null, mode: '' };
+  var state = { data: null, sig: '', paused: false, idx: 0, timer: null, mode: '', compact: false };
 
   function el(tag, cls, text) {
     var e = document.createElement(tag);
@@ -329,7 +329,7 @@
     clearInterval(state.timer);
     state.mode = currentMode();
 
-    host.className = 'ticker tk-live tk-' + state.mode + (d.pins.length ? ' tk-alerting' : '') + (state.paused ? ' tk-paused' : '');
+    host.className = 'ticker tk-live tk-' + state.mode + (d.pins.length ? ' tk-alerting' : '') + (state.paused ? ' tk-paused' : '') + (state.compact ? ' tk-compact' : '');
     host.removeAttribute('aria-hidden');
     host.setAttribute('role', 'region');
     host.setAttribute('aria-label', 'Live ticker');
@@ -439,7 +439,24 @@
     load(FIRST_PAINT_WAIT_MS).full.then(update);
   }, REFRESH_MS);
 
-  function onModeChange() { if (state.data && currentMode() !== state.mode) render(); }
+  // Phones: the pinned ticker shrinks to one line after you scroll down, and
+  // grows back near the top. The gap between the two thresholds keeps it from
+  // flickering when the height change nudges the page.
+  var COMPACT_AT = 160, EXPAND_AT = 40, ticking = false;
+  function checkCompact() {
+    ticking = false;
+    var want = !!(mqNarrow && mqNarrow.matches) &&
+      (state.compact ? window.scrollY > EXPAND_AT : window.scrollY > COMPACT_AT);
+    if (want === state.compact) return;
+    state.compact = want;
+    if (host.classList.contains('tk-live')) host.classList.toggle('tk-compact', want);
+  }
+  window.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(checkCompact); }
+  }, { passive: true });
+  checkCompact();
+
+  function onModeChange() { checkCompact(); if (state.data && currentMode() !== state.mode) render(); }
   [mqNarrow, mqReduce].forEach(function (mq) {
     if (!mq) return;
     if (mq.addEventListener) mq.addEventListener('change', onModeChange);

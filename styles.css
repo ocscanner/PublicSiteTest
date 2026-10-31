@@ -827,3 +827,18 @@
   @media (max-width:600px){
     .tk-now{ display:none; }
   }
+
+  /* ---- Ticker pinned under the sticky nav (66px tall) ----
+     Phones: shrinks to one line once you scroll (ticker.js adds .tk-compact). */
+  .ticker{ position:sticky; top:66px; z-index:45; }
+  html{ scroll-padding-top:128px; }   /* jump links (#standards) land below nav + ticker */
+  /* Elections board side panel sits below the ticker too (board.css is shared with IntelHQ, so override here) */
+  @media (min-width:1101px){ body .eb-side{ top:124px; } }
+
+  .tk-rotate.tk-compact .tk-item{ flex-wrap:nowrap; padding:9px 12px; min-width:0; overflow:hidden; }
+  .tk-rotate.tk-compact .tk-tag{ flex:none; font-size:9.5px; }
+  .tk-rotate.tk-compact .tk-text{ order:0; flex:1 1 auto; flex-basis:auto; min-width:0; display:block; font-size:13.5px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; -webkit-line-clamp:unset; }
+  .tk-rotate.tk-compact .tk-meta, .tk-rotate.tk-compact .tk-new, .tk-rotate.tk-compact .tk-count{ display:none; }
+  .tk-rotate.tk-compact .tk-label{ padding:0 10px; font-size:9.5px; }
+  @media (max-width:600px){ html{ scroll-padding-top:116px; } }
