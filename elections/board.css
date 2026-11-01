@@ -287,3 +287,33 @@ html[data-theme="light"] .eb-map text{fill:#12222e;stroke:rgba(255,255,255,.6)}
 .eb-map .eb-cbar .eb-zhint{font-family:var(--eb-fb, inherit);font-weight:400;font-size:.78em;color:var(--eb-muted)}
 @media (hover:none){.eb-map .eb-cbar .eb-zhint{display:inline}}
 .eb-counties path.sub{stroke:var(--eb-sel);stroke-width:2.2px}
+
+/* Quick count (desk): type-in counts for races with no feed */
+.eb-quick .eb-qc{padding:7px 0;border-top:1px solid var(--eb-line, rgba(127,127,127,.2))}
+.eb-quick .qch{display:flex;align-items:center;gap:8px}
+.eb-quick .qch .qcname{flex:1;text-align:left;font-weight:700;color:var(--eb-text);text-decoration:none}
+.eb-quick .qcs{font-size:.75rem;color:var(--eb-muted)}
+.eb-quick .qcs.feed{color:var(--eb-sel)}
+.eb-quick .qcr{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:5px}
+.eb-quick .qcr label{display:flex;align-items:center;gap:5px;font-size:.8rem;font-weight:600}
+.eb-quick .qcr label.D{color:var(--D)} .eb-quick .qcr label.R{color:var(--R)}
+.eb-quick .qcr input{width:96px;padding:4px 6px;border-radius:6px;border:1px solid var(--eb-line, rgba(127,127,127,.4));background:var(--eb-bg);color:var(--eb-text);font:inherit;font-weight:400}
+.eb-quick .qcr input[data-k="pct"]{width:62px}
+.eb-quick .qcr .eb-btn{padding:4px 10px;font-size:.8rem}
+
+/* Feed check (desk) */
+.eb-ilog.eb-fclist{max-height:60vh}
+.eb-fclist li.eb-fc{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center}
+.eb-fc .eb-btn{width:auto;min-width:0;padding:4px 10px;grid-row:span 2;align-self:start}
+.eb-fc .eb-fcres{grid-column:2;font-size:.92em}
+.eb-fc.good .eb-fcres{color:#4ade80}
+.eb-fc.bad .eb-fcres{color:#f87171}
+.eb-fc.wait .eb-fcres{color:#fbbf24}
+
+/* Paste from page (desk) */
+.eb-paste{margin:6px 0 12px;padding:10px;border:1px dashed var(--eb-line, rgba(127,127,127,.35));border-radius:8px}
+.eb-paste textarea{width:100%;box-sizing:border-box;margin:6px 0;font:inherit;background:transparent;color:inherit;border:1px solid var(--eb-line, rgba(127,127,127,.35));border-radius:6px;padding:6px}
+.eb-paste select{font:inherit;margin-left:6px}
+.eb-pastelist li.eb-pr{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.eb-pastelist .eb-prpct input{width:4.5em;margin-left:4px}
+.eb-pastelist .warnt{flex-basis:100%}

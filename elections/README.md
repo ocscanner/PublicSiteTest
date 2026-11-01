@@ -14,7 +14,11 @@ The top of `elections.html` has a stream-style player. Before 2:00 p.m. Pacific 
 countdown; after that it plays `elections/broadcast.html` (the same screen OC Scanner streams on X)
 inside the frame, with a Live badge, a full-screen button and a link to the X stream. It isn't video:
 the board draws itself in each visitor's browser, so it uses none of the stream's upload, but it has no
-music. To preview it early, open `elections.html?player=live`.
+music.
+
+The board and the player share one results check: `board.js` (mounted with `shared: true`) asks the
+Worker's `/v1/live` once a minute and the player in the frame reuses that answer, so each visitor costs
+about one Worker request a minute. Hidden tabs don't check at all. To preview it early, open `elections.html?player=live`.
 
 `broadcast.html` and `broadcast-logo.png` are copies from the IntelHQ repo's `elections/` folder, like
 `board.js`. Copy them again if they change there.
