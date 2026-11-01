@@ -88,6 +88,27 @@
   section.elections-block{ padding-top:56px; }
   .elections-block .block-head{ margin-bottom:28px; }
   .eb-fine{ margin-top:22px; color:var(--slate-dim); font-size:14px; max-width:80ch; }
+  /* ---- Election night player: the broadcast screen, framed like a live stream ---- */
+  .elx{ margin-bottom:40px; }
+  .elx-frame{ background:#05080c; }
+  .elx-frame:fullscreen{ border:0; border-radius:0; }
+  .elx-poster{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:4% 6%;
+    color:#EEF2F4; background:radial-gradient(120% 90% at 50% 0%, rgba(208,36,24,.22), transparent 60%), linear-gradient(180deg,#0b1016,#05080c); }
+  .elx-poster svg{ width:clamp(34px,6vw,64px); height:auto; }
+  .elx-kicker{ font-family:var(--mono); font-size:clamp(10px,1.3vw,13px); letter-spacing:.24em; text-transform:uppercase; color:#ff6b5e; margin-top:clamp(8px,1.6vw,18px); }
+  .elx-poster h3{ font-family:var(--display); font-weight:700; font-size:clamp(22px,4.6vw,52px); line-height:1.02; letter-spacing:-.02em; margin:6px 0 0; color:#fff; }
+  .elx-when{ font-family:var(--body); font-size:clamp(12px,1.7vw,18px); color:#B8C4CC; margin-top:clamp(6px,1.2vw,14px); }
+  .elx-count{ display:flex; gap:clamp(8px,1.6vw,18px); margin-top:clamp(10px,2.4vw,28px); }
+  .elx-count div{ min-width:clamp(46px,8vw,92px); padding:clamp(6px,1vw,12px) 0; border:1px solid rgba(255,255,255,.14); border-radius:8px; background:rgba(255,255,255,.04); }
+  .elx-count b{ display:block; font-family:var(--mono); font-weight:700; font-size:clamp(18px,3.6vw,40px); line-height:1; color:#fff; }
+  .elx-count span{ display:block; font-family:var(--mono); font-size:clamp(8px,1vw,11px); letter-spacing:.18em; text-transform:uppercase; color:#8A99A3; margin-top:4px; }
+  .elx-meta .elx-title{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .elx-meta .elx-title b{ font-family:var(--display); font-size:20px; letter-spacing:-.01em; }
+  .elx-meta .elx-sub{ color:var(--slate); font-size:14px; }
+  .elx-actions{ display:flex; align-items:center; gap:18px; }
+  .elx-fs{ font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; background:none; border:1px solid var(--hairline); color:var(--ink); border-radius:6px; padding:6px 12px; cursor:pointer; }
+  .elx-fs:hover{ border-color:var(--ink); }
+  .elx-note{ margin-top:10px; color:var(--slate-dim); font-size:13px; }
 </style>
 </head>
 <body>
@@ -147,6 +168,30 @@
       <h2>Midterm results</h2>
       <p>Every House seat, Senate race and governor&rsquo;s race on Nov.&nbsp;3, plus California&rsquo;s 14 propositions, updated about every 10 minutes as states count.</p>
     </div>
+    <!-- Election night player: shows elections/broadcast.html (the same screen streamed on X) in a
+         stream-style frame. Before coverage starts it shows a countdown. Add ?player=live to the page
+         URL to preview it early. -->
+    <div class="elx" id="elx">
+      <div class="live-player elx-frame" id="elxFrame">
+        <div class="elx-poster" id="elxPoster">
+          <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke-width="2" stroke-linecap="round"><g stroke="#D02418"><path d="M10 11a8 8 0 000 10M22 11a8 8 0 010 10M7 8a13 13 0 000 16M25 8a13 13 0 010 16"/></g><circle cx="16" cy="16" r="2.6" fill="#fff"/></svg>
+          <div class="elx-kicker">OC Scanner News Network</div>
+          <h3>Election Night 2026</h3>
+          <div class="elx-when">Live coverage begins Tuesday, Nov.&nbsp;3 at 2:00&nbsp;p.m. Pacific</div>
+          <div class="elx-count" id="elxCount" aria-live="off"></div>
+        </div>
+      </div>
+      <div class="live-meta elx-meta">
+        <div class="elx-title">
+          <span class="live-badge off" id="elxBadge"><span class="live-dot"></span> <span id="elxBadgeText">Coming up</span></span>
+          <b>Election Night Coverage</b><span class="elx-sub">Results and race calls as they happen</span>
+        </div>
+        <div class="elx-actions">
+          <button type="button" class="elx-fs" id="elxFs" hidden>Full screen</button>
+          <a class="live-x" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Watch with music on X &rarr;</a>
+        </div>
+      </div>
+    </div>
     <div id="board"></div>
     <p class="eb-fine">Vote counts come from state election offices and are unofficial until each state certifies. States without a live results feed are filled in by the OC Scanner desk. Race calls are made by OC Scanner; a seat shows as won only once it has been called.</p>
   </div>
@@ -193,5 +238,40 @@
 <script src="ticker.js?v=3" defer></script>
 <script src="elections/board.js?v=20261029b"></script>
 <script>ElectionBoard.mount(document.getElementById('board'), { shapesUrl: 'elections/data/us-states.json', publicMode: true });</script>
+<script>
+(function () {
+  // Coverage start: 2:00 p.m. Pacific on Nov 3 (the results service starts the same minute)
+  var START = Date.parse('2026-11-03T22:00:00Z');
+  var preview = /[?&]player=live\b/.test(location.search);
+  var frame = document.getElementById('elxFrame'), poster = document.getElementById('elxPoster');
+  var count = document.getElementById('elxCount'), badge = document.getElementById('elxBadge');
+  var badgeText = document.getElementById('elxBadgeText'), fs = document.getElementById('elxFs');
+  var timer = null;
+  function goLive() {
+    if (frame.querySelector('iframe')) return;
+    clearInterval(timer);
+    var f = document.createElement('iframe');
+    f.src = 'elections/broadcast.html?embed=1';
+    f.title = 'OC Scanner election night coverage';
+    f.allow = 'fullscreen';
+    frame.appendChild(f);
+    poster.hidden = true;
+    badge.className = 'live-badge on';
+    badgeText.textContent = Date.now() < START ? 'Preview' : 'Live';
+    fs.hidden = !(document.fullscreenEnabled && frame.requestFullscreen);
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function tick() {
+    var ms = START - Date.now();
+    if (ms <= 0 || preview) return goLive();
+    var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    var parts = (d ? [[d, d === 1 ? 'Day' : 'Days']] : []).concat([[pad(h), 'Hrs'], [pad(m), 'Min'], [pad(s % 60), 'Sec']]);
+    count.innerHTML = parts.map(function (p) { return '<div><b>' + p[0] + '</b><span>' + p[1] + '</span></div>'; }).join('');
+  }
+  fs.addEventListener('click', function () { frame.requestFullscreen().catch(function () {}); });
+  tick();
+  timer = setInterval(tick, 1000);
+})();
+</script>
 </body>
 </html>
