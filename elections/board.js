@@ -67,11 +67,33 @@
   }
   const shortName = r => r.chamber === 'house' ? r.id.replace('-AL', ' at-large').replace(/-0?/, '-') : r.name;
 
+  /* Shared results check for the public site. /v1/live returns the board, the calls feed and Orange County
+     in one response, and every board on the page (plus the broadcast player in its frame, which asks
+     window.parent.ElectionBoard.live) shares it: calls within 45 seconds get the same answer. If the Worker
+     doesn't have /v1/live yet (404), it answers null and boards fall back to separate requests. */
+  const live = {
+    p: null, at: 0, off: false,
+    get(api = DEFAULT_API) {
+      if (live.off) return Promise.resolve(null);
+      if (live.p && Date.now() - live.at < 45000) return live.p;
+      live.at = Date.now();
+      live.p = fetch(`${api.replace(/\/$/, '')}/v1/live?sim=0&local=OC`, { cache: 'no-store' }).then(r => {
+        if (r.status === 404) { live.off = true; return null; }
+        if (!r.ok) throw new Error(`Results service answered ${r.status}`);
+        return r.json();
+      });
+      live.p.catch(() => { live.at = 0; });   // a failed check isn't reused
+      return live.p;
+    },
+  };
+
   function mount(root, opts = {}) {
     const qs = new URLSearchParams(location.search);
     const S = {
       api: (qs.get('ebapi') || opts.api || store.get('api', '') || DEFAULT_API).replace(/\/$/, ''),
       shapesUrl: opts.shapesUrl || 'elections/data/us-states.json',
+      // Public results page that "Copy post for X" links to (each post opens its own race there)
+      publicUrl: opts.publicUrl || 'https://ocscanner.media/elections',
       countiesUrl: opts.countiesUrl || (opts.shapesUrl || 'elections/data/us-states.json').replace(/us-states\.json$/, 'counties'),
       districtsUrl: opts.districtsUrl || (opts.shapesUrl || 'elections/data/us-states.json').replace(/us-states\.json$/, 'districts'),
       pub: !!opts.publicMode,
@@ -139,6 +161,8 @@
         return;
       }
       if (t.dataset.qpub) { queuePublish(t.dataset.qpub); return; }
+      if (t.dataset.qcsave) { quickSave(t.dataset.qcsave).then(ok => ok && load(true)); return; }
+      if (t.dataset.qcdel) { quickToggle(t.dataset.qcdel); return; }
       if (t.dataset.qdis) { queueAct(t.dataset.qdis, 'dismiss', 'Dismissed'); return; }
       if (t.dataset.qbulk) { queueBulk(t.dataset.qbulk); return; }
       if (t.dataset.qopen) { openRace(t.dataset.qopen, t.dataset.qtab); return; }
@@ -157,7 +181,29 @@
       if (t.dataset.race) { select(t.dataset.race); return; }
     });
     $('search').addEventListener('input', e => { S.q = e.target.value.trim().toLowerCase(); S.limit = 60; renderList(); });
-    root.addEventListener('change', e => { const k = e.target?.dataset?.apref; if (k) alertsPref(k, e.target.checked); });
+    root.addEventListener('change', e => {
+      const k = e.target?.dataset?.apref; if (k) alertsPref(k, e.target.checked);
+      const ps = e.target?.dataset?.pastesel; if (ps && S.paste) S.paste.sel[ps] = e.target.checked;
+      if (e.target?.dataset?.pastest != null && S.paste) { S.paste.st = e.target.value; pasteRead(); }
+    });
+    // Paste from page: read the paste (with its HTML when the browser gives it) as soon as it lands
+    root.addEventListener('paste', e => {
+      if (e.target?.dataset?.pastebox == null) return;
+      e.preventDefault();
+      const cd = e.clipboardData;
+      const html = cd?.getData('text/html') || '', text = cd?.getData('text/plain') || '';
+      S.paste.text = html && window.EBPaste ? EBPaste.htmlToText(html) : text;
+      S.paste.st = '';
+      e.target.blur();
+      pasteRead();
+    });
+    root.addEventListener('input', e => {
+      const id = e.target?.dataset?.qcin; if (id) (S.qdraft[id] ||= {})[e.target.dataset.k] = e.target.value;
+      const pp = e.target?.dataset?.pastepct; if (pp && S.paste) S.paste.pct[pp] = e.target.value;
+    });
+    root.addEventListener('keydown', e => { const id = e.target?.dataset?.qcin; if (id && e.key === 'Enter') { e.preventDefault(); quickSave(id).then(ok => ok && load(true)); } });
+    // Don't redraw the queue panel under the cursor while typing a count; catch up when the field is left
+    root.addEventListener('focusout', e => { if ((e.target?.dataset?.qcin || e.target?.dataset?.pastepct) && S.queueDeferred) setTimeout(() => { if (!root.querySelector('.eb-quick')?.contains(document.activeElement)) { S.queueDeferred = false; renderQueue(); } }, 0); });
     // One tooltip handler for both the US map and the county maps
     $('map').addEventListener('mousemove', e => {
       const box = $('map'), tip = box.querySelector('.eb-tip');
@@ -196,11 +242,20 @@
       const q = `${S.sim ? 'sim=1' : 'sim=0'}${fresh ? '&fresh=1' : ''}`;
       try {
         const areas = neededAreas();
-        const [b, f, ...ls] = await Promise.all([
-          fetch(`${S.api}/v1/board?${q}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(`Results service answered ${r.status}`); return r.json(); }),
-          fetch(`${S.api}/v1/feed?${S.sim ? 'sim=1' : 'sim=0'}&limit=60`, { cache: 'no-store' }).then(r => r.ok ? r.json() : { items: [] }).catch(() => ({ items: [] })),
-          ...areas.map(a => fetchLocal(a, fresh)),
-        ]);
+        // Public page: one shared request (see live above). Desk, rehearsal: separate requests as before.
+        const lv = opts.shared && !S.sim ? await live.get(S.api) : null;
+        let b, f, ls;
+        if (lv) {
+          b = lv.board; f = lv.feed;
+          ls = await Promise.all(areas.map(a => lv.local?.[a] || fetchLocal(a, fresh)));
+          for (const [a, l] of Object.entries(lv.local || {})) if (!areas.includes(a) && l) setLocal(a, l);
+        } else {
+          [b, f, ...ls] = await Promise.all([
+            fetch(`${S.api}/v1/board?${q}`, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(`Results service answered ${r.status}`); return r.json(); }),
+            fetch(`${S.api}/v1/feed?${S.sim ? 'sim=1' : 'sim=0'}&limit=60`, { cache: 'no-store' }).then(r => r.ok ? r.json() : { items: [] }).catch(() => ({ items: [] })),
+            ...areas.map(a => fetchLocal(a, fresh)),
+          ]);
+        }
         S.data = b; S.byId = new Map(b.races.map(r => [r.id, r])); S.error = null; S.lastOk = Date.now();
         ls.forEach((l, i) => { if (l) setLocal(areas[i], l); });
         noteNewCalls(f.items || []);
@@ -975,6 +1030,7 @@
           ${r.call ? '<button type="button" class="eb-btn warn" data-act="retract">Withdraw call</button>' : ''}
           ${r.deskOverride ? `<button type="button" class="eb-btn" data-act="clear">${r.deskOverride === 'withdrawn' ? 'Undo withdrawal' : 'Remove desk call'}</button>` : ''}
           <button type="button" class="eb-btn" data-act="manual">${S.manualOpen === r.id ? 'Hide vote entry' : 'Enter vote counts'}</button>
+          <button type="button" class="eb-btn" data-act="quicktoggle">${store.get('quick', QUICK_DEFAULT).includes(r.id) ? 'Remove from Quick count' : 'Add to Quick count'}</button>
         </div>
         ${S.manualOpen === r.id ? `<div data-r="manual">
           ${manual.map((c, i) => `<div class="eb-grid3"><input aria-label="Candidate ${i + 1} name" value="${esc(c.name)}" data-m="name"><input aria-label="Party" value="${esc(c.party)}" data-m="party" maxlength="3"><input aria-label="Votes" inputmode="numeric" value="${c.votes ?? ''}" data-m="votes"></div>`).join('')}
@@ -1028,6 +1084,16 @@
         }
         case 'tools-alerts': S.tools = S.tools === 'alerts' ? null : 'alerts'; renderQueue(); if (S.tools) pushRefresh(); return;
         case 'tools-log': S.tools = S.tools === 'log' ? null : 'log'; renderQueue(); if (S.tools) logLoad(); return;
+        case 'tools-feeds': S.tools = S.tools === 'feeds' ? null : 'feeds'; renderQueue(); if (S.tools && !S.fc) feedsLoad(); return;
+        case 'feeds-one': return feedCheck(btn.dataset.fst);
+        case 'feeds-unverified': return feedCheckAll();
+        case 'tools-quick': S.tools = S.tools === 'quick' ? null : 'quick'; return renderQueue();
+        case 'quick-saveall': return quickSaveAll();
+        case 'paste-toggle': S.paste = S.paste ? null : { st: '', text: '', results: null, sel: {}, pct: {} }; return renderQueue();
+        case 'paste-clear': S.paste = { st: '', text: '', results: null, sel: {}, pct: {} }; return renderQueue();
+        case 'paste-save': return pasteSave();
+        case 'quick-reset': if (confirm('Reset Quick count to the default list of competitive races?')) { store.set('quick', QUICK_DEFAULT); renderQueue(); } return;
+        case 'quicktoggle': return quickToggle(r.id);
         case 'alerts-on': return alertsOn();
         case 'alerts-off': return alertsOff();
         case 'alerts-test': return alertsTest();
@@ -1036,7 +1102,7 @@
         case 'log-refresh': return logLoad();
         case 'opensheet': S.sheetOpen = true; return renderDetail();
         case 'watch': return toggleWatch(r.id);
-        case 'copypost': return copy(areaOfId(r.id) ? localPost(r) : postText(r), 'Post copied');
+        case 'copypost': return copy(withLink(areaOfId(r.id) ? localPost(r) : postText(r), r.id), 'Post copied (with a link to the race)');
         case 'copylink': { const u = new URL(location.href); u.search = `?race=${r.id}`; if (!u.hash) u.hash = '#elections'; return copy(u.toString(), 'Link copied'); }
         case 'call': {
           const src = root.querySelector('[data-r="src"]')?.value || S.deskSource;
@@ -1134,6 +1200,9 @@
       if (c.total) return `${pre}🗳️ ${title}: ${c.candidates.slice(0, Math.max(2, c.voteFor + 1)).map(x => `${x.name} ${x.pct}%`).join(', ')}${prog}. No call yet.${tag}`;
       return `${pre}🗳️ Watching ${title}: ${c.candidates.map(x => x.name).join(' vs. ')}. Results after polls close at 8 p.m.${tag}`;
     }
+    // The post plus a link that opens this race on the public results page (X counts any link as 23 characters)
+    const raceLink = id => `${S.publicUrl}?race=${encodeURIComponent(id)}`;
+    const withLink = (text, id) => `${text}\nLive results: ${raceLink(id)}`;
     async function copy(text, msg) {
       try { await navigator.clipboard.writeText(text); toast(msg); }
       catch { prompt('Copy this:', text); }
@@ -1162,6 +1231,9 @@
     function renderQueue() {
       const box = $('queue');
       if (!box) return;
+      // Don't redraw under someone typing (a button keeping focus after a click doesn't count)
+      const ae = document.activeElement;
+      if (S.tools === 'quick' && /^(INPUT|TEXTAREA|SELECT)$/.test(ae?.tagName || '') && ae.type !== 'checkbox' && box.querySelector('.eb-quick')?.contains(ae)) { S.queueDeferred = true; return; }
       const on = !!S.token && !S.pub;
       box.hidden = !on;
       const n = on ? queueCount() : 0;
@@ -1293,11 +1365,137 @@
       const row = `<div class="eb-qtools">
         <button type="button" class="eb-btn${S.tools === 'alerts' ? ' sel' : ''}" data-act="tools-alerts">Phone alerts: ${on ? '<b>on</b>' : 'off'}</button>
         <button type="button" class="eb-btn" data-act="log-note">Log issue</button>
-        <button type="button" class="eb-btn${S.tools === 'log' ? ' sel' : ''}" data-act="tools-log">Issue log</button></div>`;
+        <button type="button" class="eb-btn${S.tools === 'log' ? ' sel' : ''}" data-act="tools-log">Issue log</button>
+        <button type="button" class="eb-btn${S.tools === 'quick' ? ' sel' : ''}" data-act="tools-quick">Quick count</button>
+        <button type="button" class="eb-btn${S.tools === 'feeds' ? ' sel' : ''}" data-act="tools-feeds">Feed check</button></div>`;
+      if (S.tools === 'quick') return row + `<div class="eb-qtool eb-quick">${quickHtml()}</div>`;
       if (S.tools === 'alerts') return row + `<div class="eb-qtool">${alertsHtml()}</div>`;
       if (S.tools === 'log') return row + `<div class="eb-qtool">${logHtml()}</div>`;
+      if (S.tools === 'feeds') return row + `<div class="eb-qtool">${feedsHtml()}</div>`;
       return row;
     }
+    /* Quick count: one screen to type in counts for competitive races in states with no automatic feed.
+       Starts with the Oct 31 list (ranked by competitiveness); add or remove races per device. Each row saves
+       through the desk's vote entry (POST /v1/desk/result), so a feed or AP, when there is one, still wins. */
+    const QUICK_DEFAULT = ['MI-GOV', 'MI-SEN', 'MI-07', 'MI-08', 'MI-04', 'MI-10', 'NY-17', 'NY-22', 'NY-03', 'NY-04', 'NY-19',
+      'WI-GOV', 'WI-03', 'WI-01', 'NV-GOV', 'NV-03', 'ME-SEN', 'ME-GOV', 'ME-02', 'NH-SEN', 'NH-GOV', 'NH-01', 'NJ-07', 'IL-17'];
+    const quickIds = () => store.get('quick', QUICK_DEFAULT).filter(id => S.byId?.has(id));
+    S.qdraft = S.qdraft || {};
+    // The two candidates to type in, always in the same order (Democrat, then Republican) so the boxes never swap
+    function quickCands(r) {
+      const pre = r.preCandidates || [];
+      const by = p => pre.find(c => c.party === p);
+      return [by('D'), by('R')].filter(Boolean).concat(pre.filter(c => c.party !== 'D' && c.party !== 'R')).slice(0, 2);
+    }
+    function quickHtml() {
+      const ids = quickIds();
+      const rows = ids.map(id => {
+        const r = S.byId.get(id), cs = quickCands(r), d = S.qdraft[id] || {};
+        const val = (k, v) => esc(d[k] ?? (v ?? ''));
+        const feed = r.source && r.source !== 'OC Scanner desk' && !/desk/i.test(r.pctLabel || '') && r.pctLabel !== 'expected vote';
+        const typed = r.pctLabel === 'expected vote';
+        const status = r.call ? `Called: ${esc(last(r.call.candidate || ''))}` : feed ? `Feed: ${esc(r.source)}` : typed && r.updated ? `Saved ${ago(Date.parse(r.updated))}` : 'Not entered yet';
+        return `<div class="eb-qc" data-qc="${id}">
+          <div class="qch"><button type="button" class="eb-linkbtn qcname" data-qopen="${id}" data-qtab="${r.chamber}">${esc(shortName(r))}</button><span class="qcs${feed ? ' feed' : ''}">${status}</span><button type="button" class="eb-linkbtn" data-qcdel="${id}" title="Remove from Quick count" aria-label="Remove ${esc(shortName(r))} from Quick count">×</button></div>
+          <div class="qcr"><label>% in <input type="number" inputmode="decimal" min="0" max="100" step="0.1" data-qcin="${id}" data-k="pct" value="${val('pct', typed ? r.pctIn : '')}"></label>
+          ${cs.map((c, i) => `<label class="${c.party in PNAME ? c.party : 'O'}">${esc(last(c.name))} <input type="number" inputmode="numeric" min="0" step="1" data-qcin="${id}" data-k="v${i}" value="${val(`v${i}`, typed ? r.candidates.find(x => x.name === c.name)?.votes : '')}"></label>`).join('')}
+          <button type="button" class="eb-btn" data-qcsave="${id}">Save</button></div>
+        </div>`;
+      }).join('');
+      return `<p>Type in counts for close races in states with no automatic feed, from whatever outlet you're watching. Enter or Save stores a row; it shows on the board within about a minute. A state feed or AP replaces typed numbers when one exists.</p>
+        <div class="eb-actions"><button type="button" class="eb-btn${S.paste ? ' sel' : ''}" data-act="paste-toggle">Paste from page</button></div>
+        ${S.paste ? pasteHtml() : ''}
+        ${rows || '<p class="eb-qsmall">No races in the list. Add some with <b>Add to Quick count</b> on a race.</p>'}
+        <div class="eb-actions"><button type="button" class="eb-btn" data-act="quick-saveall">Save all changed</button><button type="button" class="eb-btn" data-act="quick-reset">Reset to the default list</button></div>`;
+    }
+    /* Paste from page: open a state's results page in your own browser (click through any "are you human" check
+       there), select all, copy, paste here. paste.js finds our races' candidates and their vote counts; you check
+       them and save. Saved like typed counts, so a working feed or AP still takes over. */
+    S.paste = S.paste || null;
+    function pasteRaces(st) {
+      return [...(S.byId?.values() || [])].filter(r => r.state === st && r.chamber !== 'local' && (r.preCandidates || []).length)
+        .map(r => ({ id: r.id, name: r.name, candidates: r.preCandidates.map(c => ({ name: c.name, party: c.party })) }));
+    }
+    function pasteRead() {
+      const P = S.paste;
+      if (!P || !window.EBPaste) return renderQueue();
+      if (!P.text.trim()) { P.results = null; return renderQueue(); }
+      if (!P.st) P.st = EBPaste.detectState(P.text) || '';
+      P.results = P.st ? EBPaste.read(P.text, pasteRaces(P.st)) : [];
+      P.sel = Object.fromEntries(P.results.map(r => [r.id, r.status === 'ok']));
+      P.pct = Object.fromEntries(P.results.map(r => [r.id, r.pctIn ?? '']));
+      renderQueue();
+    }
+    function pasteHtml() {
+      const P = S.paste;
+      if (!window.EBPaste) return '<p class="eb-qsmall">The paste reader didn’t load; refresh IntelHQ.</p>';
+      const opts = ['<option value="">Pick the state…</option>'].concat(Object.entries(EBPaste.STATE_NAMES).map(([k, n]) => `<option value="${k}"${P.st === k ? ' selected' : ''}>${esc(n)}</option>`)).join('');
+      const fmt = n => Number(n).toLocaleString('en-US');
+      let res = '';
+      if (P.results) {
+        res = !P.st ? '<p class="warnt">Couldn’t tell which state this page is for. Pick it above.</p>'
+          : !P.results.length ? `<p class="warnt">No ${esc(EBPaste.STATE_NAMES[P.st])} races found in what you pasted. Make sure the page shows the candidates’ vote totals, then select all and copy again.</p>`
+          : `<ul class="eb-ilog eb-pastelist">${P.results.map(r => {
+            const race = S.byId.get(r.id);
+            return `<li class="eb-pr ${r.status}"><label><input type="checkbox" data-pastesel="${esc(r.id)}"${P.sel[r.id] ? ' checked' : ''}> <b>${esc(race ? shortName(race) : r.id)}</b></label>
+              <span class="qwhy">${r.candidates.map(c => `${esc(last(c.name))} ${fmt(c.votes)}`).join(' · ')}</span>
+              <label class="eb-prpct">% in <input type="number" min="0" max="100" step="0.1" inputmode="decimal" data-pastepct="${esc(r.id)}" value="${esc(String(P.pct[r.id] ?? ''))}"></label>
+              ${r.status !== 'ok' ? `<div class="warnt eb-qsmall">Check this one: ${r.missing.length ? `didn’t find ${esc(r.missing.map(last).join(', '))}` : 'names found far apart on the page'}. Unticked.</div>` : ''}</li>`;
+          }).join('')}</ul>
+          <div class="eb-actions"><button type="button" class="eb-btn" data-act="paste-save">Save ${Object.values(P.sel).filter(Boolean).length} ticked</button><button type="button" class="eb-btn" data-act="paste-clear">Clear</button></div>`;
+      }
+      return `<div class="eb-paste">
+        <p class="eb-qsmall">Open the state’s official results page in your browser (click through any human check there), show the races you want (New York: U.S. Congress → All → Search), then select all (Cmd/Ctrl+A), copy, and paste below. Nothing saves until you press Save.</p>
+        <label class="eb-qsmall">State <select data-pastest>${opts}</select></label>
+        <textarea data-pastebox rows="2" placeholder="Paste the page here"></textarea>
+        ${P.results ? `<p class="eb-qsmall">${esc(EBPaste.STATE_NAMES[P.st] || 'Unknown state')}: ${P.results.length} race${P.results.length === 1 ? '' : 's'} found${P.results.some(r => r.pctIn == null) ? '. Fill in “% in” where the page didn’t show it' : ''}.</p>` : ''}
+        ${res}</div>`;
+    }
+    async function pasteSave() {
+      const P = S.paste;
+      const ids = (P?.results || []).filter(r => P.sel[r.id]);
+      if (!ids.length) return toast('Nothing ticked');
+      let ok = 0;
+      for (const r of ids) {
+        const pct = P.pct[r.id] === '' || P.pct[r.id] == null ? null : Math.max(0, Math.min(100, +P.pct[r.id]));
+        try { await deskApi('POST', 'result', { raceId: r.id, pctIn: pct, candidates: r.candidates, sim: S.sim }); ok++; }
+        catch (e) { toast(`${r.id} not saved: ${e.message}`); }
+      }
+      toast(`${ok} of ${ids.length} races saved${S.sim ? ' (rehearsal)' : ''}`);
+      if (ok === ids.length) S.paste = { st: P.st, text: '', results: null, sel: {}, pct: {} };
+      renderQueue();
+      await load(true);
+    }
+    async function quickSave(id, quiet) {
+      const r = S.byId.get(id), d = S.qdraft[id];
+      if (!r || !d) return false;
+      const cs = quickCands(r);
+      const num = v => v === '' || v == null ? null : Math.max(0, +v);
+      const vs = cs.map((c, i) => num(d[`v${i}`] ?? (r.pctLabel === 'expected vote' ? r.candidates.find(x => x.name === c.name)?.votes : null)));
+      if (vs.some(v => v == null || !Number.isFinite(v))) { if (!quiet) toast(`${shortName(r)}: enter votes for both candidates`); return false; }
+      const pct = num(d.pct ?? (r.pctLabel === 'expected vote' ? r.pctIn : null));
+      try {
+        await deskApi('POST', 'result', { raceId: id, pctIn: pct, candidates: cs.map((c, i) => ({ name: c.name, party: c.party, votes: vs[i] })), sim: S.sim });
+        delete S.qdraft[id];
+        if (!quiet) toast(`${shortName(r)} saved${S.sim ? ' (rehearsal)' : ''}`);
+        return true;
+      } catch (e) { toast(`${shortName(r)} not saved: ${e.message}`); return false; }
+    }
+    async function quickSaveAll() {
+      const ids = Object.keys(S.qdraft).filter(id => quickIds().includes(id));
+      if (!ids.length) return toast('Nothing changed');
+      let ok = 0;
+      for (const id of ids) if (await quickSave(id, true)) ok++;
+      toast(`${ok} of ${ids.length} saved${S.sim ? ' (rehearsal)' : ''}`);
+      await load(true);
+    }
+    const quickToggle = id => {
+      const ids = store.get('quick', QUICK_DEFAULT);
+      store.set('quick', ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]);
+      toast(ids.includes(id) ? 'Removed from Quick count' : 'Added to Quick count');
+      renderQueue(); renderDetail();
+    };
+
     function alertsHtml() {
       const info = S.push.info;
       if (!pushSupported()) {
@@ -1315,6 +1513,54 @@
         : `<button type="button" class="eb-btn" data-act="alerts-on"${S.push.busy ? ' disabled' : ''}>${S.push.busy ? 'Turning on…' : 'Turn on alerts on this device'}</button>${others.length ? '<button type="button" class="eb-btn" data-act="alerts-test">Test the other devices</button>' : ''}`;
       return `<p>Your phone buzzes when something needs you, even with IntelHQ closed. Each alert opens the race here. Starts with results on Nov 3; send a test any time.</p>
         <div class="eb-qprefs">${boxes}</div><div class="eb-actions">${btns}</div>${list}`;
+    }
+    /* Feed check: runs a state's feed right now through the Worker (GET /v1/desk/preview, saves nothing) and shows
+       what came back: "ok" with races, "not posted" (the state hasn't put November up yet) or the error. This is the
+       Worker's own request, so it also shows whether a site blocks the Worker (New York's human check, for one). */
+    S.fc = S.fc || null;
+    async function feedsLoad() {
+      try { S.fc = { feeds: (await deskApi('GET', 'preview')).feeds, res: {}, busy: null }; }
+      catch (e) { S.fc = null; S.fcError = e.message === 'Failed to fetch' ? 'Can’t reach the results service' : e.message; }
+      renderQueue();
+    }
+    async function feedCheck(st) {
+      if (!S.fc || S.fc.busy) return;
+      const keep = () => { const l = document.querySelector('.eb-fclist'); return l ? l.scrollTop : 0; };
+      const back = y => { const l = document.querySelector('.eb-fclist'); if (l) l.scrollTop = y; };
+      let y = keep(); S.fc.busy = st; renderQueue(); back(y);
+      try { S.fc.res[st] = await deskApi('GET', `preview?state=${encodeURIComponent(st)}`); }
+      catch (e) { S.fc.res[st] = { error: e.message }; }
+      y = keep(); S.fc.busy = null; renderQueue(); back(y);
+    }
+    async function feedCheckAll() {
+      if (!S.fc || S.fc.busy) return;
+      for (const f of S.fc.feeds.filter(f => f.confidence !== 'verified')) await feedCheck(f.st);
+    }
+    function feedVerdict(r) {
+      if (!r) return ['', 'Not checked'];
+      if (r.error) return ['bad', r.error];
+      const us = r.units || [];
+      const err = us.find(u => u.status === 'error');
+      if (err) return ['bad', `Failing: ${err.error || 'error'}`];
+      if (r.races?.length) return ['good', `Working: ${r.races.length} race${r.races.length === 1 ? '' : 's'}`];
+      if (r.local?.length) return ['good', `Working: ${r.local.reduce((s, l) => s + l.contests, 0)} contests`];
+      if (us.length && us.every(u => u.status === 'not posted')) return ['wait', 'Not posted yet (reached the site; November isn’t up)'];
+      return ['wait', us.map(u => u.status).join(', ') || 'No races yet'];
+    }
+    function feedsHtml() {
+      if (!S.fc) return `<p>${esc(S.fcError || 'Loading…')}</p>`;
+      const order = { unverified: 0, verified: 1 };
+      const list = [...S.fc.feeds].sort((a, b) => (order[a.confidence] ?? 0) - (order[b.confidence] ?? 0) || a.st.localeCompare(b.st));
+      const rows = list.map(f => {
+        const r = S.fc.res[f.st], [cls, txt] = S.fc.busy === f.st ? ['', 'Checking…'] : feedVerdict(r);
+        const sample = r?.races?.slice(0, 2).map(x => `${esc(x.raceId)}: ${esc(x.candidates.slice(0, 2).join(', '))}${x.pctIn != null ? ` · ${Math.round(x.pctIn)}% ${esc(x.pctLabel || 'in')}` : ''}`).join('<br>') || '';
+        return `<li class="eb-fc ${cls}"><button type="button" class="eb-btn" data-act="feeds-one" data-fst="${esc(f.st)}"${S.fc.busy ? ' disabled' : ''}>Check</button>
+          <b>${esc(f.st)}</b> <span class="qwhy">${esc(f.label)}${f.confidence !== 'verified' ? ' · unverified' : ''}</span>
+          <div class="eb-fcres">${esc(txt)}${sample ? `<div class="qwhy">${sample}</div>` : ''}</div></li>`;
+      }).join('');
+      return `<p>Runs a state’s feed right now from the results service, the same way election night will, without saving anything. “Not posted yet” before Nov 3 is normal: it means the Worker reached the site. “Failing” means it couldn’t (a block, a human check, or a changed page).</p>
+        <div class="eb-actions"><button type="button" class="eb-btn" data-act="feeds-unverified"${S.fc.busy ? ' disabled' : ''}>Check all unverified</button></div>
+        <ul class="eb-ilog eb-fclist">${rows}</ul>`;
     }
     function logHtml() {
       if (!S.issueLog) return `<p>${esc(S.issueLogError || 'Loading…')}</p>`;
@@ -1415,5 +1661,5 @@
     };
   }
 
-  window.ElectionBoard = { mount };
+  window.ElectionBoard = { mount, live };
 })();
