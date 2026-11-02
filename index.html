@@ -506,15 +506,34 @@
       if(data.digest){
         el.textContent = data.digest;
         el.style.fontStyle = 'normal';
-        if(ts){
-          const when = data.timestamp ? new Date(data.timestamp) : new Date();
-          ts.textContent = 'Updated ' + when.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
-        }
+        const when = data.timestamp ? new Date(data.timestamp) : new Date();
+        if(ts) ts.textContent = 'Updated ' + when.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+        try{ localStorage.setItem('ocw-digest', JSON.stringify({ digest: data.digest, ts: when.toISOString() })); }catch(_){}
       } else {
-        el.innerHTML = `<span style="color:#ff6b4d">Briefing unavailable${data.error ? ': '+data.error : ''}.</span>`;
+        console.warn('[Briefing] service error:', data.error);
+        digestQuietFail(el, ts);
       }
     }catch(e){
-      el.innerHTML = '<span style="color:#ff6b4d">Error reaching AI service.</span>';
+      console.warn('[Briefing] request failed:', e && e.message);
+      digestQuietFail(el, ts);
+    }
+  }
+
+  // Never show visitors a raw API error. Show this browser's last good briefing
+  // (marked with its time) if there is one; otherwise a neutral line.
+  function digestQuietFail(el, ts){
+    let saved = null;
+    try{ saved = JSON.parse(localStorage.getItem('ocw-digest') || 'null'); }catch(_){}
+    if(saved && saved.digest){
+      el.textContent = saved.digest;
+      el.style.fontStyle = 'normal';
+      if(ts){
+        const when = new Date(saved.ts);
+        ts.textContent = 'Last updated ' + when.toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+      }
+    } else {
+      el.innerHTML = '<span style="color:#7a8a98;font-style:italic">The Briefing is updating. Check back shortly.</span>';
+      if(ts) ts.textContent = '';
     }
   }
 
