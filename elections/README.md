@@ -10,7 +10,7 @@ for the board are set in the `<style>` block at the top of `elections.html`.
 
 ## Election night player
 
-The top of `elections.html` has a stream-style player. Before 2:00 p.m. Pacific on Nov 3 it shows a
+The top of `elections.html` has a stream-style player. Before 3:00 p.m. Pacific on Nov 3 it shows a
 countdown; after that it plays `elections/broadcast.html` (the same screen OC Scanner streams on X)
 inside the frame, with a Live badge, a full-screen button and a link to the X stream. It isn't video:
 the board draws itself in each visitor's browser, so it uses none of the stream's upload, but it has no
