@@ -55,7 +55,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Libre+Franklin:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="styles.css?v=12" />
+<link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body>
 <!-- ===================== TOP BAR ===================== -->
@@ -127,6 +127,12 @@
           <!-- EDIT-YT-URL: your YouTube channel URL -->
           <a class="btn btn-ghost" href="https://youtube.com/@OC_Scanner" target="_blank" rel="noopener">Subscribe on YouTube</a>
         </div>
+        <!-- MaxQ Live filler: the iframe is only created when we are off air (see script below) -->
+        <div class="maxq-meanwhile" id="maxq-offair" hidden>
+          <div class="maxq-label">Meanwhile, in space</div>
+          <div class="maxq-frame" data-maxq-slot="broadcast"></div>
+          <div data-maxq-credit></div>
+        </div>
       </div>
 
       <!-- LIVE (revealed by JS when you're broadcasting) -->
@@ -136,6 +142,12 @@
           <div class="live-badge on"><span class="live-dot"></span> Live now</div>
           <!-- EDIT-LINK: your X / Twitter profile -->
           <a class="live-x" href="https://x.com/OC_Scanner" target="_blank" rel="noopener">Also live on X →</a>
+        </div>
+        <!-- Launch-night mode (OCS_CONFIG.maxq.launchNightMode, default off) -->
+        <div class="maxq-meanwhile maxq-night" id="maxq-night" hidden>
+          <div class="maxq-label">Launch night · MaxQ Live</div>
+          <div class="maxq-frame" data-maxq-slot="broadcast"></div>
+          <div data-maxq-credit></div>
         </div>
       </div>
     </div>
@@ -178,7 +190,8 @@
   </div>
 </footer>
 
-<script src="site-config.js?v=2"></script>
+<script src="site-config.js?v=3"></script>
+<script src="maxq.js?v=1"></script>
 <script src="app.js"></script>
 <script src="ticker.js?v=3" defer></script>
 <script>
@@ -209,6 +222,13 @@
     // if OC_LIVE is true but the channel ID hasn't been set yet, the off-air card stays
   }
   // when OC_LIVE is false, the default off-air card stays as-is
+
+  // MaxQ: only when OUR stream is not on screen. While we're live nothing from MaxQ loads,
+  // unless launch-night mode is switched on in site-config.js.
+  if(window.OCS_MAXQ){
+    if(!offair.hidden) window.OCS_MAXQ.mountLive(document.getElementById('maxq-offair'));
+    else if(window.OCS_MAXQ.launchNightMode) window.OCS_MAXQ.mountLive(document.getElementById('maxq-night'));
+  }
 })();
 </script>
 </body>
