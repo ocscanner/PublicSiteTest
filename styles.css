@@ -864,6 +864,17 @@
   .maxq-fs:hover{ border-color:var(--alert); color:var(--alert); }
   .maxq-frame:fullscreen{ aspect-ratio:auto; width:100vw; height:100vh; border:0; border-radius:0; }
   .maxq-frame:-webkit-full-screen{ aspect-ratio:auto; width:100vw; height:100vh; border:0; border-radius:0; }
+  /* Full screen fallback (iPhone): pin the same frame over the whole page */
+  .maxq-fs-close{ display:none; }
+  .maxq-frame.maxq-theater{ position:fixed; inset:0; z-index:2147483000; width:100vw; height:100vh; height:100dvh; max-width:none;
+    aspect-ratio:auto; border:0; border-radius:0; margin:0; }
+  .maxq-frame.maxq-theater iframe{ inset:auto; left:0; top:env(safe-area-inset-top, 0px); width:100%;
+    height:calc(100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
+  .maxq-frame.maxq-theater .maxq-fs-close{ display:inline-flex; align-items:center; gap:6px; position:absolute; z-index:2; right:calc(12px + env(safe-area-inset-right));
+    top:calc(12px + env(safe-area-inset-top)); font:600 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:#fff;
+    background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.35); border-radius:20px; padding:8px 12px; cursor:pointer;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+  html.maxq-lock, html.maxq-lock body{ overflow:hidden; }
   @media(max-width:820px){
     .maxq-pair{ grid-template-columns:1fr; gap:14px; }
     /* jellyfish stays 16:9: the embed has no size option and its height varies (no map on "no show" nights) */

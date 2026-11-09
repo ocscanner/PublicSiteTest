@@ -45,9 +45,6 @@ window.OCS_CONFIG = {
       jellyfish: 'https://www.maxq.app/embed/jellyfish/',
       broadcast: 'https://www.maxq.app/embed/broadcast'
     },
-    // Live page "Full screen" button: where the browser can't put the frame
-    // full screen (iPhone Safari), it opens this in its own tab instead.
-    fullscreenFallbackUrl: 'https://www.maxq.app/embed/broadcast',
     creditText: 'Space data: MaxQ',
     creditUrl:  'https://maxq.app/?ref=ocscanner',
     // Live page: show MaxQ Live as a second panel below OUR stream

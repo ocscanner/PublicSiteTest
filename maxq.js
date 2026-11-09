@@ -12,7 +12,7 @@
     var f = document.createElement('iframe');
     f.src = src; f.title = title; f.loading = 'lazy';
     f.setAttribute('allowfullscreen', '');
-    f.setAttribute('allow', 'fullscreen; autoplay; picture-in-picture');
+    f.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture; encrypted-media');   // autoplay lets MaxQ's audio play once the visitor has tapped
     f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     if(cls) f.className = cls;
     return f;
@@ -96,39 +96,57 @@
     target.hidden = false;
   }
 
-  /* Full screen: the real Fullscreen API where the browser allows it on the frame
-     (desktop, Android, iPad). iPhone Safari only allows full screen for <video>, so
-     there the button opens the broadcast in its own tab, filling the screen. */
+  /* Full screen always keeps the embedded player on our page.
+     1) The browser's own full screen on the frame (desktop, Android, iPad).
+     2) Where that isn't allowed (iPhone Safari only allows it for <video>), a
+        "fill the screen" mode: the same iframe is pinned over the whole page with
+        a close button. The iframe is never moved or reloaded, so audio keeps playing. */
   function fsEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+  var ICON_IN  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg>';
+  var ICON_OUT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6"/></svg>';
   function fullscreenButton(box){
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'maxq-fs';
-    var canFs = !!(box.requestFullscreen || box.webkitRequestFullscreen) &&
-                (document.fullscreenEnabled || document.webkitFullscreenEnabled);
+    var close = document.createElement('button');
+    close.type = 'button'; close.className = 'maxq-fs-close';
+    close.setAttribute('aria-label', 'Exit full screen');
+    close.innerHTML = ICON_OUT + '<span>Exit</span>';
+    box.appendChild(close);
+
+    function theaterOn(){ return box.classList.contains('maxq-theater'); }
+    function isOn(){ return fsEl() === box || theaterOn(); }
     function label(){
-      var on = fsEl() === box;
-      b.innerHTML = (on
-        ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6"/></svg> Exit full screen'
-        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg> Full screen');
+      var on = isOn();
+      b.innerHTML = on ? ICON_OUT + ' Exit full screen' : ICON_IN + ' Full screen';
       b.setAttribute('aria-label', on ? 'Exit full screen' : 'Watch MaxQ Live full screen');
     }
-    label();
-    b.addEventListener('click', function(){
-      if(!canFs){
-        var url = C.fullscreenFallbackUrl || C.embed.broadcast;
-        if(safeUrl(url)) window.open(url, '_blank', 'noopener');
-        return;
+    function enterTheater(){
+      box.classList.add('maxq-theater');
+      document.documentElement.classList.add('maxq-lock');
+      label(); close.focus();
+    }
+    function exitAll(){
+      if(fsEl() === box){ try{ (document.exitFullscreen || document.webkitExitFullscreen).call(document); }catch(e){} }
+      if(theaterOn()){
+        box.classList.remove('maxq-theater');
+        document.documentElement.classList.remove('maxq-lock');
+        b.focus();
       }
-      if(fsEl() === box){
-        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-        return;
-      }
+      label();
+    }
+    function enter(){
       var req = box.requestFullscreen || box.webkitRequestFullscreen;
+      var allowed = document.fullscreenEnabled || document.webkitFullscreenEnabled;
+      if(!req || !allowed){ enterTheater(); return; }
       try{
         var p = req.call(box);
-        if(p && p.catch) p.catch(function(){ window.open(C.embed.broadcast, '_blank', 'noopener'); });
-      }catch(e){ window.open(C.embed.broadcast, '_blank', 'noopener'); }
-    });
+        if(p && p.catch) p.catch(enterTheater);
+      }catch(e){ enterTheater(); }
+    }
+    label();
+    b.addEventListener('click', function(){ isOn() ? exitAll() : enter(); });
+    close.addEventListener('click', exitAll);
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && theaterOn()) exitAll(); });
     document.addEventListener('fullscreenchange', label);
     document.addEventListener('webkitfullscreenchange', label);
     return b;
