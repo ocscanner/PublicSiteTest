@@ -6,7 +6,7 @@ tag: Declassified
 author: OC Scanner
 excerpt: Four Air Force reports from 1949 to 1955, including three Boy Scouts' sighting at Camp Fox, turned up in the Pentagon's seventh release of declassified UAP files.
 image: posts/img/catalina/header.jpg
-homepage: false
+homepage: true
 ---
 
 If you've ever taken the boat over to Avalon, you probably weren't thinking about flying saucers. But a handful of people in the 1940s and '50s were, and the government kept the paperwork.
