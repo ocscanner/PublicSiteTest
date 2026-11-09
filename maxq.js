@@ -12,6 +12,7 @@
     var f = document.createElement('iframe');
     f.src = src; f.title = title; f.loading = 'lazy';
     f.setAttribute('allowfullscreen', '');
+    f.setAttribute('allow', 'fullscreen; autoplay; picture-in-picture');
     f.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
     if(cls) f.className = cls;
     return f;
@@ -87,8 +88,50 @@
     var wrap = target.querySelector('[data-maxq-slot="broadcast"]');
     var cr = target.querySelector('[data-maxq-credit]');
     wrap.appendChild(frame(C.embed.broadcast, 'MaxQ Live: 24/7 spaceflight broadcast'));
-    if(cr && !cr.firstChild) cr.appendChild(credit());
+    if(cr && !cr.firstChild){
+      cr.className = 'maxq-foot';
+      cr.appendChild(credit());
+      cr.appendChild(fullscreenButton(wrap));
+    }
     target.hidden = false;
+  }
+
+  /* Full screen: the real Fullscreen API where the browser allows it on the frame
+     (desktop, Android, iPad). iPhone Safari only allows full screen for <video>, so
+     there the button opens the broadcast in its own tab, filling the screen. */
+  function fsEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+  function fullscreenButton(box){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'maxq-fs';
+    var canFs = !!(box.requestFullscreen || box.webkitRequestFullscreen) &&
+                (document.fullscreenEnabled || document.webkitFullscreenEnabled);
+    function label(){
+      var on = fsEl() === box;
+      b.innerHTML = (on
+        ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6"/></svg> Exit full screen'
+        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg> Full screen');
+      b.setAttribute('aria-label', on ? 'Exit full screen' : 'Watch MaxQ Live full screen');
+    }
+    label();
+    b.addEventListener('click', function(){
+      if(!canFs){
+        var url = C.fullscreenFallbackUrl || C.embed.broadcast;
+        if(safeUrl(url)) window.open(url, '_blank', 'noopener');
+        return;
+      }
+      if(fsEl() === box){
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        return;
+      }
+      var req = box.requestFullscreen || box.webkitRequestFullscreen;
+      try{
+        var p = req.call(box);
+        if(p && p.catch) p.catch(function(){ window.open(C.embed.broadcast, '_blank', 'noopener'); });
+      }catch(e){ window.open(C.embed.broadcast, '_blank', 'noopener'); }
+    });
+    document.addEventListener('fullscreenchange', label);
+    document.addEventListener('webkitfullscreenchange', label);
+    return b;
   }
 
   window.OCS_MAXQ = { mountLive: mountLive, launchNightMode: !!C.launchNightMode };
