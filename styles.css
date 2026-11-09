@@ -859,5 +859,5 @@
   .maxq-night{ margin-top:34px; }
   @media(max-width:820px){
     .maxq-pair{ grid-template-columns:1fr; gap:14px; }
-    .maxq-frame.maxq-tall{ aspect-ratio:4/5; }   /* jellyfish map needs height on phones */
+    /* jellyfish stays 16:9: the embed has no size option and its height varies (no map on "no show" nights) */
   }
