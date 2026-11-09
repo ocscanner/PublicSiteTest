@@ -108,7 +108,7 @@
   function getStories() {
     return cachedJSON('posts', 5, 'posts/index.json', function (list) {
       if (!Array.isArray(list)) return null;
-      return list.filter(function (p) { return p && p.slug && p.title; })
+      return list.filter(function (p) { return p && p.slug && p.title && p.home !== false; })   // `homepage: false` stories stay out of the ticker too
         .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); })
         .slice(0, 2)
         .map(function (p) {
