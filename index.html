@@ -324,8 +324,6 @@
 
   const PROXIES = [
     u => `${WORKER}/rss?url=${encodeURIComponent(u)}`,
-    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
   ];
   async function fetchText(url){
     for(const make of PROXIES){
@@ -336,7 +334,7 @@
         const r = await fetch(proxied, { signal: ctrl.signal });
         clearTimeout(to);
         if(!r.ok) continue;
-        if(proxied.includes('/rss?') || proxied.includes('allorigins')){
+        if(proxied.includes('/rss?')){
           const j = await r.json();
           if(j.contents && j.contents.length > 40) return j.contents;
         } else {
