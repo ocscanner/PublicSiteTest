@@ -3,7 +3,7 @@ title: Winter outlook 2026–27: why El Niño may not mean a wet SoCal winter
 date: 2026-11-10
 dateline: Los Angeles
 tag: Weather
-author: J. Mesh
+author: J. Mesh (@realwxforecast)
 excerpt: My 2026–27 winter outlook: 22–25 inches in downtown LA, a big Sierra snow year and a better second half for Big Bear, but I don't expect El Niño to steer storms south the way it usually does.
 image: posts/img/winter-outlook/sst-anomaly.jpg
 featured: true
