@@ -92,7 +92,7 @@
           if(/^(true|yes|1)$/i.test(fm.meta.draft||'')) return null;
           return { slug:slug, title:fm.meta.title||slug, date:fm.meta.date||'', tag:fm.meta.tag||'', author:fm.meta.author||'',
                    excerpt:fm.meta.excerpt||firstPara(fm.body), image:fm.meta.image||'',
-                   featured:/^(true|yes|1)$/i.test(fm.meta.featured||''), home:!/^(false|no|0)$/i.test(fm.meta.homepage||''), mins:readMins(fm.body) };
+                   featured:/^(true|yes|1)$/i.test(fm.meta.featured||''), breaking:/^(true|yes|1)$/i.test(fm.meta.breaking||''), home:!/^(false|no|0)$/i.test(fm.meta.homepage||''), mins:readMins(fm.body) };
         }).catch(function(){ return null; });
       }));
     });
