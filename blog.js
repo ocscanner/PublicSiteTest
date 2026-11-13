@@ -70,14 +70,19 @@
     return 'https://raw.githubusercontent.com/'+REPO.owner+'/'+REPO.repo+'/'+REPO.branch+'/'+REPO.dir+'/'+encodeURIComponent(slug)+'.md';
   }
 
-  // On Cloudflare the build writes posts/index.json, so the site reads its own
-  // files. On GitHub Pages (no build step) it falls back to the GitHub API.
-  function listFromSite(){
-    return fetch('posts/index.json', {cache:'no-cache'}).then(function(r){
+  // On Cloudflare, /news.json lists the story files plus stories published in the
+  // Command Center (admin.ocscanner.media). If that's unavailable, the build's
+  // posts/index.json (files only) is used; on GitHub Pages, the GitHub API.
+  function getList(url){
+    return fetch(url, {cache:'no-cache'}).then(function(r){
       if(!r.ok) throw new Error('index '+r.status);
       return r.json();
-    });
+    }).then(function(j){ if(!Array.isArray(j)) throw new Error('index shape'); return j; });
   }
+  function listFromSite(){
+    return getList('news.json').catch(function(){ return getList('posts/index.json'); });
+  }
+  function sortKey(p){ return p.publishedAt || (p.date ? p.date+'T20:00:00Z' : ''); }
   function listFromGitHub(){
     return fetch(apiURL).then(function(r){ if(!r.ok) throw new Error('list '+r.status); return r.json(); }).then(function(files){
       var mds = (files||[]).filter(function(f){ return /\.md$/i.test(f.name) && f.name.charAt(0) !== '_'; });
@@ -95,20 +100,74 @@
   function list(){
     try{ var c = JSON.parse(sessionStorage.getItem('ocblog')||'null'); if(c && Date.now()-c.t < 300000) return Promise.resolve(c.posts); }catch(e){}
     return listFromSite().catch(listFromGitHub).then(function(posts){
-      posts = (posts||[]).filter(Boolean).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+      posts = (posts||[]).filter(Boolean).sort(function(a,b){ return String(sortKey(b)).localeCompare(String(sortKey(a))); });
       try{ sessionStorage.setItem('ocblog', JSON.stringify({t:Date.now(), posts:posts})); }catch(e){}
       return posts;
     });
   }
+  // Command Center story first (moved stories keep their address), then the
+  // Markdown file on this site, then the file on GitHub.
+  function fromCMS(slug){
+    if(!/^[a-z0-9-]{1,180}$/.test(slug)) return Promise.reject(new Error('not a CC address'));
+    return fetch('story.json?p='+encodeURIComponent(slug)).then(function(r){
+      if(!r.ok) throw new Error('story '+r.status);
+      return r.json();
+    }).then(function(j){
+      var a = j && j.story;
+      if(!a || typeof a.bodyHtml !== 'string') throw new Error('story shape');
+      return { meta:{ title:a.title, date:a.date, updated:a.updated, tag:a.tag, author:a.author, excerpt:a.excerpt, image:a.image },
+               html:a.bodyHtml, mins:Math.max(1, Math.round((a.words||0)/220)), source:'cc' };
+    });
+  }
   function getPost(slug){
     function grab(url){ return fetch(url).then(function(r){ if(!r.ok) throw new Error('post '+r.status); return r.text(); }); }
-    return grab('posts/'+encodeURIComponent(slug)+'.md')
-      .catch(function(){ return grab(rawURL(slug)); })
-      .then(function(t){
-        var p = parseFM(t);
-        if(/^(true|yes|1)$/i.test(p.meta.draft||'')) throw new Error('draft');
-        return p;
+    function fromFile(){
+      return grab('posts/'+encodeURIComponent(slug)+'.md')
+        .catch(function(){ return grab(rawURL(slug)); })
+        .then(function(t){
+          var p = parseFM(t);
+          if(/^(true|yes|1)$/i.test(p.meta.draft||'')) throw new Error('draft');
+          return p;
+        });
+    }
+    return fromCMS(slug).catch(fromFile);
+  }
+
+  // Command Center story text is already cleaned on the server. This second pass
+  // keeps only plain story markup, and photos only from the Command Center.
+  var CC_IMG = /^https:\/\/(staging-)?admin\.ocscanner\.media\/api\/v1\/media\/[0-9a-f-]{36}$/i;
+  var CC_TAGS = { P:1,H2:1,H3:1,H4:1,STRONG:1,EM:1,S:1,U:1,BLOCKQUOTE:1,UL:1,OL:1,LI:1,PRE:1,CODE:1,A:1,BR:1,HR:1,FIGURE:1,FIGCAPTION:1,IMG:1 };
+  var CC_DROP = { SCRIPT:1,STYLE:1,IFRAME:1,OBJECT:1,EMBED:1,SVG:1,MATH:1,TEMPLATE:1,FORM:1,INPUT:1 };
+  function storyFragment(html){
+    var tpl = document.createElement('template');
+    tpl.innerHTML = html;
+    var out = document.createDocumentFragment();
+    (function copy(src, dst){
+      Array.prototype.forEach.call(src.childNodes, function(n){
+        if(n.nodeType === 3){ dst.appendChild(document.createTextNode(n.textContent)); return; }
+        if(n.nodeType !== 1 || CC_DROP[n.tagName]) return;
+        if(!CC_TAGS[n.tagName]){ copy(n, dst); return; }
+        var el = document.createElement(n.tagName.toLowerCase());
+        if(n.tagName === 'IMG'){
+          var src2 = n.getAttribute('src') || '';
+          if(!CC_IMG.test(src2)) return;
+          el.src = src2; el.alt = n.getAttribute('alt') || ''; el.loading = 'lazy'; el.decoding = 'async';
+          dst.appendChild(el); return;
+        }
+        if(n.tagName === 'A'){
+          try{
+            var u = new URL(n.getAttribute('href'), location.href);
+            if(/^(https?|mailto):$/.test(u.protocol)){
+              el.href = u.href;
+              if(u.origin !== location.origin){ el.target = '_blank'; el.rel = 'noopener noreferrer'; }
+            }
+          }catch(e){}
+        }
+        copy(n, el);
+        dst.appendChild(el);
       });
+    })(tpl.content, out);
+    return out;
   }
   function card(p){
     return '<a class="blog-card" href="post.html?p='+encodeURIComponent(p.slug)+'">'
@@ -175,7 +234,7 @@
       + (p.image ? '<div class="lead-img"><img src="'+esc(p.image)+'" alt="" loading="lazy"></div>' : '')
       + '<div class="lead-body">'
       +   '<div class="lead-kicker">'
-      +     (fresh ? '<span class="lead-new">New</span>' : '')
+      +     (p.breaking && ageDays(p.date) <= BREAKING_LEAD_DAYS ? '<span class="lead-new">Breaking</span>' : (fresh ? '<span class="lead-new">New</span>' : ''))
       +     (p.tag ? '<span class="blog-tag">'+esc(p.tag)+'</span>' : '')
       +   '</div>'
       +   '<h3>'+esc(p.title)+'</h3>'
@@ -196,12 +255,15 @@
   // A post leads only while it's fresh (or marked `featured: true`);
   // otherwise the AI Digest keeps the lead slot so the top never goes stale.
   var FRONT_FRESH_DAYS = 5;
+  var BREAKING_LEAD_DAYS = 2;   // a Breaking story from the Command Center leads for 2 days
   var front = document.getElementById('front');
   var frontLead = document.getElementById('front-lead');
   if(front && frontLead){
     list().then(function(posts){
       posts = posts.filter(function(p){ return p.home !== false; });   // `homepage: false` posts stay off the front page
-      var lead = posts.filter(function(p){ return p.featured; })[0]
+      // Lead: a fresh Breaking story, then a pinned one, then the newest fresh one.
+      var lead = posts.filter(function(p){ return p.breaking && ageDays(p.date) <= BREAKING_LEAD_DAYS; })[0]
+              || posts.filter(function(p){ return p.featured; })[0]
               || posts.filter(function(p){ return ageDays(p.date) <= FRONT_FRESH_DAYS; })[0];
       if(lead){
         frontLead.innerHTML = leadCard(lead);
@@ -249,10 +311,15 @@
           (m.updated && m.updated !== m.date) ? 'Updated <time datetime="'+esc(m.updated)+'">'+fmtDate(m.updated)+'</time>' : ''
         ].filter(Boolean).join(' <span class="post-dot">·</span> ');
 
-        postBody.innerHTML = (window.marked && window.marked.parse) ? window.marked.parse(post.body) : '<pre>'+esc(post.body)+'</pre>';
+        if(post.html != null){
+          postBody.textContent = '';
+          postBody.appendChild(storyFragment(post.html));   // Command Center story (dateline already in the text)
+        } else {
+          postBody.innerHTML = (window.marked && window.marked.parse) ? window.marked.parse(post.body) : '<pre>'+esc(post.body)+'</pre>';
+        }
 
         // Dateline, e.g. "SANTA ANA —" at the start of the first paragraph
-        if(m.dateline){
+        if(m.dateline && post.html == null){
           var first = postBody.querySelector('p');
           if(first){
             var dl = document.createElement('span');

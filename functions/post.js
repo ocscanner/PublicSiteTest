@@ -1,7 +1,8 @@
 // Cloudflare Pages Function for /post?p=<slug>
 // Puts the story's own headline, excerpt and image into the page before it's sent,
 // so links shared on X, iMessage or Discord show that story instead of the generic card.
-const SITE = 'https://ocscanner.media';
+// Command Center stories are checked first, then the Markdown files in /posts.
+import { apiOriginFor, cmsStory, SITE } from '../lib/cms.js';
 
 function parseFM(text) {
   const m = String(text).match(/^﻿?---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n?([\s\S]*)$/);
@@ -35,19 +36,28 @@ export async function onRequestGet(context) {
   const slug = new URL(request.url).searchParams.get('p') || '';
   if (!/^[A-Za-z0-9._-]{1,120}$/.test(slug) || slug.startsWith('_')) return page;
 
-  let story;
-  try {
-    const res = await env.ASSETS.fetch(new Request(`${new URL(request.url).origin}/posts/${slug}.md`));
-    if (!res.ok) return page;
-    story = parseFM(await res.text());
-  } catch (e) { return page; }
-  const m = story.meta;
-  if (/^(true|yes|1)$/i.test(m.draft || '')) return page;
-
-  const title = m.title || slug;
-  const desc = m.excerpt || firstPara(story.body) || 'OC Scanner news report.';
+  let title, desc, image;
+  const api = apiOriginFor(request.url, env);
+  let cc = null;
+  if (api) { try { cc = await cmsStory(api, slug); } catch (e) { cc = null; } }
+  if (cc) {
+    title = cc.seoTitle || cc.title;
+    desc = cc.seoDescription || cc.excerpt || 'OC Scanner news report.';
+    image = cc.image || `${SITE}/og-image.png`;
+  } else {
+    let story;
+    try {
+      const res = await env.ASSETS.fetch(new Request(`${new URL(request.url).origin}/posts/${slug}.md`));
+      if (!res.ok) return page;
+      story = parseFM(await res.text());
+    } catch (e) { return page; }
+    const m = story.meta;
+    if (/^(true|yes|1)$/i.test(m.draft || '')) return page;
+    title = m.title || slug;
+    desc = m.excerpt || firstPara(story.body) || 'OC Scanner news report.';
+    image = m.image ? (/^https?:/i.test(m.image) ? m.image : `${SITE}/${m.image.replace(/^\//, '')}`) : `${SITE}/og-image.png`;
+  }
   const url = `${SITE}/post?p=${encodeURIComponent(slug)}`;
-  const image = m.image ? (/^https?:/i.test(m.image) ? m.image : `${SITE}/${m.image.replace(/^\//, '')}`) : `${SITE}/og-image.png`;
 
   return new HTMLRewriter()
     .on('title', new SetText(`${title} — OC Scanner`))

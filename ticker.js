@@ -10,7 +10,7 @@
 
    Sources (each cached in the visitor's browser, so moving between
    pages doesn't refetch):
-     posts/index.json            our stories (same site)       5 min
+     news.json (posts/index.json) our stories (same site)      5 min
      NWS api.weather.gov         OC forecast + current temp    30 / 15 min
      NWS active alerts           anything covering Orange Co.  5 min
      oc-radar-proxy /rss         outside news (site-config.js)  5 min
@@ -120,15 +120,19 @@
 
   /* ---------- sources ---------- */
   function getStories() {
-    return cachedJSON('posts', 5, 'posts/index.json', function (list) {
+    // news.json = story files + Command Center stories; posts/index.json (files only) if it fails.
+    var pickStories = function (list) {
       if (!Array.isArray(list)) return null;
       return list.filter(function (p) { return p && p.slug && p.title && p.home !== false; })   // `homepage: false` stories stay out of the ticker too
-        .sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); })
+        .sort(function (a, b) { return String(b.publishedAt || b.date).localeCompare(String(a.publishedAt || a.date)); })
         .slice(0, 2)
         .map(function (p) {
           return { slug: p.slug, title: p.title, date: p.date || '', tag: p.tag || '', mins: p.mins || 0 };
         });
-    }).then(function (list) {
+    };
+    return cachedJSON('posts2', 5, 'news.json', pickStories)
+      .catch(function () { return cachedJSON('posts', 5, 'posts/index.json', pickStories); })
+      .then(function (list) {
       var today = ptParts(new Date());
       return list.map(function (p) {
         var isNew = p.date && daysBetween(p.date, today) <= 1;

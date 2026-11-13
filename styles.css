@@ -879,3 +879,10 @@
     .maxq-pair{ grid-template-columns:1fr; gap:14px; }
     /* jellyfish stays 16:9: the embed has no size option and its height varies (no map on "no show" nights) */
   }
+
+/* ============ COMMAND CENTER STORIES (P04) ============
+   Photos placed inside a story arrive as <figure><img><figcaption>. */
+.post-article figure{ margin:22px 0; }
+.post-article figure img{ display:block; width:100%; height:auto; margin:0; border-radius:10px; background:var(--card-2); }
+.post-article figcaption{ font-family:var(--body); font-style:italic; font-size:15px; line-height:1.5; color:var(--slate); margin-top:8px; }
+.post-article hr{ border:0; border-top:1px solid var(--hairline); margin:28px 0; }

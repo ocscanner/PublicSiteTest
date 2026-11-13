@@ -11,7 +11,7 @@ const SITE = 'https://ocscanner.media';
 const OUT = 'dist';
 
 // Files and folders that stay in the repo but never go on the live site
-const SKIP = new Set(['.git', '.github', 'node_modules', OUT, 'functions', 'build.mjs',
+const SKIP = new Set(['.git', '.github', 'node_modules', OUT, 'functions', 'lib', 'build.mjs',
   'package.json', 'package-lock.json', 'README.md', 'wrangler.toml', '.gitignore', '.DS_Store']);
 
 rmSync(OUT, { recursive: true, force: true });

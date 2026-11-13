@@ -13,6 +13,11 @@
      2. commit and deploy
    To turn it off again, set enabled back to false.
    ============================================================ */
+/* NEWS FROM THE COMMAND CENTER (P04)
+   Stories published at admin.ocscanner.media appear on News, the homepage,
+   the ticker, story pages, share cards and the sitemap. That switch lives
+   in lib/cms.js (enabled: true/false), because the server-side page code
+   reads it; previews use staging-admin.ocscanner.media automatically. */
 window.OCS_CONFIG = {
   staffLogin: {
     // Production Command Center (live Nov 12, 2026). Staging stays at staging-admin.ocscanner.media for testing.
