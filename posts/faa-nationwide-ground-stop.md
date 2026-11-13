@@ -1,6 +1,7 @@
 ---
 title: FAA orders nationwide ground stop, halting departures at all U.S. airports
 date: 2026-11-13
+updated: 2026-11-13
 dateline: Orange County
 tag: Breaking
 author: OC Scanner News Desk
@@ -10,13 +11,15 @@ featured: true
 breaking: true
 ---
 
+**Update, 2:15 p.m. PT:** The ground stop remains in effect. Preliminary reports indicate it was not caused by a cyberattack, two law enforcement officials told CNN. An FAA advisory lists the stop through 10 p.m. Eastern (7 p.m. Pacific), though departures remain grounded until further notice. An internal Alaska Airlines message seen by CNBC described communications and radar problems. In its own statement, the FAA said the communication issues are affecting "multiple" Air Route Traffic Control Centers. FlightAware listed more than 7,800 delayed U.S. flights and about 380 cancellations.
+
 The Federal Aviation Administration ordered a rare nationwide ground stop Friday afternoon, halting departing flights at airports across the United States. The order, issued by the FAA's Air Traffic Control System Command Center at 12:54 p.m. Pacific time, cites "extraordinary circumstances" and "reasons of safety" and directs all departing traffic to remain grounded until further notice. Inbound international flights are being managed case by case.
 
 Transportation Secretary Sean Duffy said in a post on X that the FAA issued the ground stop for all U.S. airports following a communication issue impacting all Air Route Traffic Control Centers, and that FAA technicians are investigating. He said the department would provide immediate updates.
 
 A government source told CNN the communication issue began in the Northeast before spreading across the country.
 
-An airline industry source told the OC Scanner News Desk the disruptions involve air traffic control radio frequencies and radar systems. The FAA has not confirmed any radar outage, and the precise nature, extent and cause of the problem have not been independently confirmed.
+An airline industry source told the OC Scanner News Desk the disruptions involve air traffic control radio frequencies and radar systems. The FAA has not publicly confirmed a radar outage, and the precise cause of the problem has not been confirmed.
 
 ## Southern California airports
 
