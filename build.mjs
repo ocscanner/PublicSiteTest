@@ -67,7 +67,7 @@ mkdirSync(join(OUT, 'posts'), { recursive: true });
 writeFileSync(join(OUT, 'posts', 'index.json'), JSON.stringify(posts));
 
 // ---- sitemap ----
-const pages = ['', 'news', 'live', 'elections', 'space', 'community', 'store', 'tips', 'donate', 'about'];
+const pages = ['', 'news', 'live', 'elections', 'space', 'community', 'store', 'tips', 'donate', 'about', 'privacy'];
 const today = new Date().toISOString().slice(0, 10);
 const urls = pages.map((p) => `  <url><loc>${SITE}/${p}</loc><lastmod>${today}</lastmod></url>`);
 for (const p of posts) {
