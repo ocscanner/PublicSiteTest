@@ -789,7 +789,7 @@
   .tk-item{ display:inline-flex; align-items:baseline; gap:10px; padding:12px 24px; border-right:1px solid var(--hairline-2); color:var(--ink); white-space:nowrap; }
   .tk-item:hover .tk-text{ color:var(--alert); }
   .tk-tag{ font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--slate); }
-  .tk-ocs .tk-tag{ color:var(--tk-ocs); } .tk-wx .tk-tag{ color:var(--tk-wx); } .tk-iw .tk-tag{ color:var(--tk-iw); }
+  .tk-ocs .tk-tag{ color:var(--tk-ocs); } .tk-wx .tk-tag{ color:var(--tk-wx); } .tk-iw .tk-tag, .tk-news .tk-tag{ color:var(--tk-iw); }
   .tk-launch .tk-tag{ color:var(--tk-launch); } .tk-elex .tk-tag{ color:var(--tk-elex); } .tk-alert .tk-tag{ color:var(--alert); }
   .tk-new{ font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#fff; background:var(--alert); padding:2px 6px; border-radius:2px; align-self:center; }
   .tk-text{ font-family:var(--body); font-size:14px; font-weight:500; line-height:1.35; transition:color .15s var(--ease); }

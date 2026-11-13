@@ -1,8 +1,10 @@
 /* ============================================================
    OC SCANNER — live ticker (the strip under the nav, every page)
 
-   Rotation: our story → OC weather → Insider Wire → next Vandenberg
-   launch → our story → OC weather → Insider Wire → elections.
+   Rotation: our story → OC weather → 2 outside headlines → next
+   Vandenberg launch → our story → OC weather → 2 outside headlines →
+   elections. Outside headlines take turns between the news sources
+   switched on in site-config.js (tickerNews), e.g. KTLA → Fox News.
    A missing source is simply skipped. An active NWS *warning* for
    Orange County is pinned at the front and the label turns to ALERT.
 
@@ -11,7 +13,7 @@
      posts/index.json            our stories (same site)       5 min
      NWS api.weather.gov         OC forecast + current temp    30 / 15 min
      NWS active alerts           anything covering Orange Co.  5 min
-     oc-radar-proxy /rss         Insider Wire headlines        15 min
+     oc-radar-proxy /rss         outside news (site-config.js)  5 min
      Launch Library (+ proxy)    next Vandenberg launch        60 min
 
    Wide screens: a slow crawl (pauses on hover/focus or with the
@@ -25,7 +27,19 @@
   if (!host || !window.fetch || !window.Promise) return;
 
   var WORKER = 'https://oc-radar-proxy.ocscannernews.workers.dev';
-  var IW_RSS = 'https://insiderwire.com/rssfeed.xml';
+  // Outside news sources and their on/off switches live in site-config.js (tickerNews).
+  // These defaults are only used if that block is missing.
+  var NEWS = (function (c) {
+    c = c || {};
+    return {
+      cacheMinutes: c.cacheMinutes > 0 ? c.cacheMinutes : 5,
+      maxAgeHours: c.maxAgeHours >= 0 ? c.maxAgeHours : 24,
+      sources: Array.isArray(c.sources) ? c.sources : [
+        { id: 'ktla', name: 'KTLA', enabled: true, urls: ['https://ktla.com/feed'] },
+        { id: 'fox', name: 'Fox News', enabled: true, urls: ['https://moxie.foxnews.com/google-publisher/us.xml'] }
+      ]
+    };
+  })(window.OCS_CONFIG && window.OCS_CONFIG.tickerNews);
   var SANTA_ANA = { lat: 33.7455, lon: -117.8677 };
   var NWS_PAGE = 'https://forecast.weather.gov/MapClick.php?lat=33.7455&lon=-117.8677';
   var OBS_STATION = 'KSNA';                 // John Wayne Airport, Santa Ana
@@ -199,29 +213,69 @@
     });
   }
 
-  function getInsiderWire() {
-    return cachedJSON('iw', 15, WORKER + '/rss?url=' + encodeURIComponent(IW_RSS), function (j) {
+  /* Outside news: every source switched on in OCS_CONFIG.tickerNews.
+     Each feed is fetched through the radar proxy and cached per visitor. */
+  function readFeed(src, url) {
+    var key = 'nf_' + src.id + '_' + url.length + '_' + url.slice(-24).replace(/\W/g, '');
+    return cachedJSON(key, NEWS.cacheMinutes, WORKER + '/rss?url=' + encodeURIComponent(url), function (j) {
       var xml = (j && j.contents) || '';
       var items = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
-      return items.slice(0, 2).map(function (it) {
+      return items.slice(0, 15).map(function (it) {
         function tag(name) {
           var m = it.match(new RegExp('<' + name + '[^>]*>([\\s\\S]*?)</' + name + '>', 'i'));
           return m ? m[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '';
         }
-        var title = decode(tag('title').replace(/<[^>]+>/g, ''));
-        var link = tag('link') || tag('guid');
-        if (!/^https:\/\//i.test(link)) link = 'https://insiderwire.com/';
-        return title ? { title: title, link: link, date: tag('pubDate') } : null;
+        var title = decode(tag('title').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+        var link = decode(tag('link') || tag('guid'));
+        if (!/^https:\/\//i.test(link)) return null;     // never link to anything but https
+        var t = Date.parse(tag('pubDate') || tag('dc:date'));
+        return title ? { title: title, link: link, t: isNaN(t) ? 0 : t } : null;
       }).filter(Boolean);
-    }).then(function (list) {
-      return list.map(function (it) {
-        var d = it.date ? new Date(it.date) : null;
-        var a = d && !isNaN(d) ? ago(d) : '';
+    });
+  }
+
+  function getSource(src) {
+    var urls = (src.urls || []).filter(function (u) { return /^https:\/\//i.test(u); });
+    return Promise.all(urls.map(function (u) { return settle(readFeed(src, u)); })).then(function (lists) {
+      var cutoff = Date.now() - NEWS.maxAgeHours * 3600000;
+      var prefer = (src.prefer || []).map(function (w) {
+        return new RegExp('(^|[^a-z])' + w.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z]|$)', 'i');
+      });
+      var seen = {};
+      var all = [].concat.apply([], lists).filter(function (it) {
+        if (it.t && it.t < cutoff) return false;           // too old
+        if (!it.t && NEWS.maxAgeHours) return false;      // no date: can't tell if it's fresh
+        var k = normTitle(it.title);
+        if (seen[k]) return false;                         // same story in two of its feeds
+        seen[k] = 1;
+        return true;
+      });
+      all.forEach(function (it) { it.pref = prefer.some(function (re) { return re.test(it.title); }) ? 1 : 0; });
+      all.sort(function (a, b) { return (b.pref - a.pref) || (b.t - a.t); });
+      return all.slice(0, src.perTurn || 2).map(function (it) {
+        var a = it.t ? ago(new Date(it.t)) : '';
         return {
-          kind: 'iw', tag: 'Insider Wire', text: it.title,
-          meta: 'Partner' + (a ? ' · ' + a : ''), href: it.link, ext: true
+          kind: 'news', tag: src.name, text: it.title, key: normTitle(it.title),
+          meta: [src.note, a].filter(Boolean).join(' · '), href: it.link, ext: true
         };
       });
+    });
+  }
+  function normTitle(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().slice(0, 60); }
+
+  // takes turns: 1st story from each source, then 2nd from each, ...
+  function getNews() {
+    var on = NEWS.sources.filter(function (s) { return s && s.enabled && s.id && s.name; });
+    if (!on.length) return Promise.resolve([]);
+    return Promise.all(on.map(function (s) { return settle(getSource(s)); })).then(function (lists) {
+      var out = [], seen = {}, depth = Math.max.apply(null, lists.map(function (l) { return l.length; }));
+      for (var i = 0; i < depth; i++) {
+        lists.forEach(function (l) {
+          var it = l[i];
+          if (it && !seen[it.key]) { seen[it.key] = 1; out.push(it); }   // same story from two outlets: show once
+        });
+      }
+      return out;
     });
   }
 
@@ -282,7 +336,7 @@
   // Starts every source once. Returns two promises over the same requests:
   // `quick` gives up on anything slower than `waitMs`, `full` waits for all.
   function load(waitMs) {
-    var jobs = [getStories, getForecast, getInsiderWire, getLaunch, getElection, getAlerts, getNow]
+    var jobs = [getStories, getForecast, getNews, getLaunch, getElection, getAlerts, getNow]
       .map(function (fn) { return settle(fn()); });
     function cutoff(p) {
       return Promise.race([p, new Promise(function (res) { setTimeout(function () { res([]); }, waitMs); })]);
@@ -290,11 +344,11 @@
     return { quick: Promise.all(jobs.map(cutoff)).then(assemble), full: Promise.all(jobs).then(assemble) };
   }
   function assemble(r) {
-    var S = r[0], W = r[1], I = r[2], L = r[3], E = r[4], A = r[5], now = r[6];
+    var S = r[0], W = r[1], N = r[2], L = r[3], E = r[4], A = r[5], now = r[6];
     var pins = A.filter(function (a) { return a.warning; });
     var watches = A.filter(function (a) { return !a.warning; });
     var wx = watches.concat(W);  // advisories/watches lead the weather slots
-    var order = [S[0], wx[0], I[0], L[0], S[1], wx[1], I[1], E[0]].filter(Boolean);
+    var order = [S[0], wx[0], N[0], N[1], L[0], S[1], wx[1], N[2], N[3], E[0]].filter(Boolean);
     return { pins: pins, items: order, now: Array.isArray(now) ? null : now };
   }
 

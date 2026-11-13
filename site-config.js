@@ -30,6 +30,51 @@ window.OCS_CONFIG = {
   },
 
   /* ============================================================
+     TICKER NEWS SOURCES (the outside headlines in the live ticker)
+     Turn a source on or off with `enabled: true / false`, then
+     commit. The ticker takes the newest stories from every source
+     that is on, takes turns between them, and labels each one with
+     its `name`.
+
+     Adding a new source: every feed's site must be on the radar
+     proxy's approved list (FEED_HOSTS in IntelHQ
+     workers/oc-radar-proxy/src/index.js), or it will be refused.
+
+     Per source:
+       urls     one or more RSS feeds (merged, newest first)
+       perTurn  how many of its stories to show (default 2)
+       prefer   words that move a story to the front, e.g. OC cities
+       note     small grey text after the headline (optional)
+     ============================================================ */
+  tickerNews: {
+    cacheMinutes: 5,     // how long each visitor's browser keeps a copy
+    maxAgeHours: 24,     // skip stories older than this (stale feeds disappear)
+    sources: [
+      {
+        id: 'ktla', name: 'KTLA', enabled: true,
+        urls: ['https://ktla.com/feed'],
+        // KTLA covers all of SoCal; Orange County stories go first.
+        prefer: ['Orange County', 'OC ', 'Anaheim', 'Santa Ana', 'Irvine', 'Huntington Beach',
+          'Costa Mesa', 'Newport Beach', 'Fullerton', 'Garden Grove', 'Orange', 'Tustin',
+          'Mission Viejo', 'Laguna', 'San Clemente', 'Dana Point', 'Westminster', 'Buena Park',
+          'Yorba Linda', 'Lake Forest', 'Fountain Valley', 'Seal Beach', 'Cypress', 'Brea',
+          'Placentia', 'La Habra', 'Stanton', 'Los Alamitos', 'Aliso Viejo',
+          'Rancho Santa Margarita', 'San Juan Capistrano', 'Villa Park', 'Ladera Ranch']
+      },
+      {
+        id: 'fox', name: 'Fox News', enabled: true,
+        urls: ['https://moxie.foxnews.com/google-publisher/us.xml',
+               'https://moxie.foxnews.com/google-publisher/politics.xml']
+      },
+      {
+        // Off Nov 12, 2026: its newest story was 9+ days old. Flip to true to bring it back.
+        id: 'iw', name: 'Insider Wire', enabled: false, note: 'Partner',
+        urls: ['https://insiderwire.com/rssfeed.xml']
+      }
+    ]
+  },
+
+  /* ============================================================
      MAXQ SPACE DATA (maxq.app)
      Every MaxQ-specific value lives here so MaxQ's official URLs
      can be swapped in one place. Used by maxq.js on space.html
