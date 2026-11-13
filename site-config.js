@@ -15,8 +15,8 @@
    ============================================================ */
 window.OCS_CONFIG = {
   staffLogin: {
-    // Staging admin for now; switch to https://admin.ocscanner.media/ once production is built.
-    url: 'https://staging-admin.ocscanner.media/',
+    // Production Command Center (live Nov 12, 2026). Staging stays at staging-admin.ocscanner.media for testing.
+    url: 'https://admin.ocscanner.media/',
 
     // false = link is hidden on the live site.
     enabled: true,
