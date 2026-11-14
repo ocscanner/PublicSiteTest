@@ -58,6 +58,9 @@ export async function onRequestGet(context) {
     image = m.image ? (/^https?:/i.test(m.image) ? m.image : `${SITE}/${m.image.replace(/^\//, '')}`) : `${SITE}/og-image.png`;
   }
   const url = `${SITE}/post?p=${encodeURIComponent(slug)}`;
+  // Optional update tag (?v=…): kept in og:url so X treats an updated story's link as new and re-reads the card.
+  const v = (new URL(request.url).searchParams.get('v') || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 24);
+  const shareUrl = v ? `${url}&v=${v}` : url;
 
   return new HTMLRewriter()
     .on('title', new SetText(`${title} — OC Scanner`))
@@ -66,7 +69,7 @@ export async function onRequestGet(context) {
     .on('meta[property="og:title"]', new SetAttr('content', title))
     .on('meta[property="og:description"]', new SetAttr('content', desc))
     .on('meta[property="og:type"]', new SetAttr('content', 'article'))
-    .on('meta[property="og:url"]', new SetAttr('content', url))
+    .on('meta[property="og:url"]', new SetAttr('content', shareUrl))
     .on('meta[property="og:image"]', new SetAttr('content', image))
     .on('meta[name="twitter:title"]', new SetAttr('content', title))
     .on('meta[name="twitter:description"]', new SetAttr('content', desc))
