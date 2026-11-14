@@ -1,15 +1,21 @@
 ---
-title: FAA orders nationwide ground stop, halting departures at all U.S. airports
+title: FAA lifts nationwide ground stop; flights resume with heavy delays
 date: 2026-11-13
 updated: 2026-11-13
 dateline: Orange County
 tag: Breaking
 author: OC Scanner News Desk
-excerpt: The FAA halted departing flights at every U.S. airport Friday afternoon, including LAX, John Wayne, Ontario and Burbank, after a communication issue affecting air traffic control centers nationwide.
-image: posts/img/faa-nationwide-ground-stop.jpg
+excerpt: The FAA lifted its nationwide ground stop Friday evening after a communication failure halted departures for more than four hours. Expect delays and cancellations at LAX, SNA, ONT and BUR.
+image: posts/img/faa-ground-stop-lifted.jpg
 featured: true
 breaking: true
 ---
+
+**Update, 6:40 p.m. PT: Ground stop lifted.** The FAA has lifted the nationwide ground stop. "At 8:15 tonight Eastern Time, we've opened up the airspace," Transportation Secretary Sean Duffy told reporters at the White House, which is 5:15 p.m. Pacific. The international NOTAM has also been cancelled, clearing flights to depart and to enter U.S. airspace.
+
+Flights are departing again, but delays remain extreme. Duffy said the return to normal traffic will be slow, and airlines are warning that cancellations could stretch into the weekend. Thousands of U.S. flights were canceled Friday. If you're flying out of LAX, John Wayne, Ontario or Burbank tonight or this weekend, check your flight status with your airline before heading to the airport.
+
+On the cause, Duffy pointed to instability with radar data, NBC News reported. Homeland Security Secretary Markwayne Mullin said new technology upgrades overloaded the existing system, and officials said there is no indication of a cyberattack.
 
 **Update, 2:15 p.m. PT:** The ground stop remains in effect. Preliminary reports indicate it was not caused by a cyberattack, two law enforcement officials told CNN. An FAA advisory lists the stop through 10 p.m. Eastern (7 p.m. Pacific), though departures remain grounded until further notice. An internal Alaska Airlines message seen by CNBC described communications and radar problems. In its own statement, the FAA said the communication issues are affecting "multiple" Air Route Traffic Control Centers. FlightAware listed more than 7,800 delayed U.S. flights and about 380 cancellations.
 
@@ -34,4 +40,4 @@ Travelers throughout Orange County and the greater Los Angeles region should pre
 
 The OC Scanner News Desk is monitoring this developing situation, including updates from the FAA's Air Traffic Control System Command Center and impacts on Southern California airports.
 
-*This is a developing story. OC Scanner will provide additional updates as more information becomes available. First published Nov. 13, 2026, 1:40 p.m. PT.*
+*This is a developing story. First published Nov. 13, 2026, 1:40 p.m. PT; updated 2:15 p.m. and 6:40 p.m. PT. Original report below the updates.*
