@@ -70,6 +70,13 @@ writeFileSync(join(OUT, 'posts', 'index.json'), JSON.stringify(posts));
 const pages = ['', 'news', 'live', 'elections', 'space', 'community', 'store', 'tips', 'donate', 'about', 'privacy'];
 const today = new Date().toISOString().slice(0, 10);
 const urls = pages.map((p) => `  <url><loc>${SITE}/${p}</loc><lastmod>${today}</lastmod></url>`);
+// Section pages (/news/<section>), only for sections that have at least one published story.
+const norm = (t) => String(t || '').toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+const SECTIONS = JSON.parse(readFileSync('sections.json', 'utf8'));
+const sectionOf = (tag) => SECTIONS.find((s) => norm(tag) && (norm(s.name) === norm(tag) || (s.aliases || []).some((a) => norm(a) === norm(tag))));
+for (const s of SECTIONS) {
+  if (posts.some((p) => sectionOf(p.tag) === s)) urls.push(`  <url><loc>${SITE}/news/${s.slug}</loc><lastmod>${today}</lastmod></url>`);
+}
 for (const p of posts) {
   const mod = p.updated || p.date;
   urls.push(`  <url><loc>${SITE}/post?p=${encodeURIComponent(p.slug)}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`);
