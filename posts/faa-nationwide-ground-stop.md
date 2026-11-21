@@ -3,7 +3,7 @@ title: FAA lifts nationwide ground stop; flights resume with heavy delays
 date: 2026-11-13
 updated: 2026-11-13
 dateline: Orange County
-tag: Breaking
+tag: Traffic & Aviation
 author: OC Scanner News Desk
 excerpt: The FAA lifted its nationwide ground stop Friday evening after a communication failure halted departures for more than four hours. Expect delays and cancellations at LAX, SNA, ONT and BUR.
 image: posts/img/faa-ground-stop-lifted.jpg

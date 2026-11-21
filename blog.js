@@ -30,6 +30,21 @@
   var REPO = { owner:'ocscanner', repo:'PublicSiteTest', branch:'main', dir:'posts' };
 
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  // ---- News sections (sections.json): a story's tag or Command Center category picks its section ----
+  var sectionsP = null;
+  function loadSections(){
+    if(!sectionsP) sectionsP = fetch('/sections.json').then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
+    return sectionsP;
+  }
+  function normTag(s){ return String(s||'').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]/g,''); }
+  function sectionOf(sections, tag){
+    var t = normTag(tag); if(!t) return null;
+    for(var i=0;i<sections.length;i++){
+      var s = sections[i];
+      if(normTag(s.name) === t || (s.aliases||[]).some(function(a){ return normTag(a) === t; })) return s;
+    }
+    return null;
+  }
   function fmtDate(d){
     if(!d) return '';
     var dt = new Date(String(d)+'T00:00:00');
@@ -215,10 +230,35 @@
   var postBody = document.getElementById('post-body');   // post.html
 
   if(listBox){
-    list().then(function(posts){
+    // /news shows everything; /news/<section> (e.g. /news/fire) shows one section.
+    var secMatch = location.pathname.match(/^\/news\/([a-z0-9-]+)\/?$/);
+    Promise.all([list(), loadSections()]).then(function(r){
+      var posts = r[0], sections = r[1] || [];
+      var current = secMatch ? sections.filter(function(s){ return s.slug === secMatch[1]; })[0] || null : null;
+      // Chips: All + every section that has at least one story (empty sections stay hidden)
+      var nav = document.getElementById('news-sections');
+      var withStories = sections.filter(function(s){ return posts.some(function(p){ return sectionOf(sections, p.tag) === s; }); });
+      if(nav && withStories.length){
+        nav.innerHTML = '<a class="news-chip'+(current?'':' is-on')+'" href="/news"'+(current?'':' aria-current="page"')+'>All</a>'
+          + withStories.map(function(s){
+              var on = current === s;
+              return '<a class="news-chip'+(on?' is-on':'')+'" href="/news/'+esc(s.slug)+'"'+(on?' aria-current="page"':'')+'>'+esc(s.name)+'</a>';
+            }).join('');
+        nav.hidden = false;
+      }
+      if(current){
+        posts = posts.filter(function(p){ return sectionOf(sections, p.tag) === current; });
+        document.title = current.name + ' \u2014 OC Scanner News';
+        var eb = document.getElementById('news-eyebrow'), h = document.getElementById('news-title'), bl = document.getElementById('news-blurb');
+        if(eb) eb.innerHTML = '<a href="/news">OC Scanner News</a> <span aria-hidden="true">&rsaquo;</span> '+esc(current.name);
+        if(h) h.textContent = current.name;
+        if(bl && current.blurb){ bl.textContent = current.blurb; bl.hidden = false; }
+      }
       listBox.innerHTML = posts.length
         ? posts.map(card).join('')
-        : '<div class="blog-empty">No reports have been published yet. Check back soon, or follow <a href="https://x.com/OC_Scanner" target="_blank" rel="noopener">@OC_Scanner</a> for breaking updates.</div>';
+        : (current
+            ? '<div class="blog-empty">No '+esc(current.name)+' reports yet. <a href="/news">See all news</a>.</div>'
+            : '<div class="blog-empty">No reports have been published yet. Check back soon, or follow <a href="https://x.com/OC_Scanner" target="_blank" rel="noopener">@OC_Scanner</a> for breaking updates.</div>');
     }).catch(function(){
       listBox.innerHTML = '<div class="blog-empty">News couldn\u2019t be loaded right now. Please try again in a moment.</div>';
     });
@@ -302,6 +342,27 @@
         var m = post.meta;
         document.title = (m.title || 'News') + ' — OC Scanner';
         if(titleEl) titleEl.textContent = m.title || slug;
+
+        // Section link: the tag links to its section page, and "All news" gains "› Section"
+        loadSections().then(function(sections){
+          var sec = sectionOf(sections, m.tag);
+          if(!sec) return;
+          var tagEl = metaEl && metaEl.querySelector('.blog-tag');
+          if(tagEl){
+            var a = document.createElement('a');
+            a.className = 'blog-tag blog-tag-link'; a.href = '/news/' + sec.slug; a.textContent = tagEl.textContent;
+            a.title = 'More ' + sec.name + ' reports';
+            tagEl.parentNode.replaceChild(a, tagEl);
+          }
+          var back = document.querySelector('.post-back');
+          if(back && !document.querySelector('.post-back-sec')){
+            var sa = document.createElement('a');
+            sa.className = 'post-back post-back-sec'; sa.href = '/news/' + sec.slug; sa.textContent = sec.name;
+            var sep = document.createElement('span'); sep.className = 'post-back-sep'; sep.setAttribute('aria-hidden','true'); sep.textContent = '\u203a';
+            back.parentNode.insertBefore(sa, back.nextSibling);
+            back.parentNode.insertBefore(sep, sa);
+          }
+        });
 
         // Byline: section · By author · Published date · Updated date
         if(metaEl) metaEl.innerHTML = [

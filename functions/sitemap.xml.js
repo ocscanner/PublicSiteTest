@@ -2,6 +2,7 @@
 // The built sitemap (pages + story files) plus Command Center stories, so a new
 // story is listed without a rebuild. Falls back to the built file.
 import { apiOriginFor, cmsList, SITE } from '../lib/cms.js';
+import { sectionOf } from '../lib/sections.js';
 
 export async function onRequestGet({ request, env, next }) {
   const built = await next();
@@ -23,6 +24,13 @@ export async function onRequestGet({ request, env, next }) {
     }
     const mod = p.updated || p.date;
     urls.push(`  <url><loc>${loc}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`);
+  }
+  // Section pages (/news/<section>) for sections that only have Command Center stories so far.
+  const secs = new Set();
+  for (const p of stories) { const s = sectionOf(p.tag); if (s) secs.add(s.slug); }
+  for (const slug of secs) {
+    const loc = `${SITE}/news/${slug}`;
+    if (!xml.includes(`<loc>${loc}</loc>`)) urls.push(`  <url><loc>${loc}</loc></url>`);
   }
   if (urls.length) xml = xml.replace('</urlset>', urls.join('\n') + '\n</urlset>');
   return new Response(xml, {
