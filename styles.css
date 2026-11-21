@@ -890,7 +890,7 @@
 /* ===================== NEWS SECTIONS =====================
    Chips on /news and /news/<section>; sections come from sections.json and
    only show once they have a story. Story pages link their tag to the section. */
-.news-sections{ display:flex; flex-wrap:wrap; gap:8px; margin:-18px 0 6px; }
+.news-sections{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 34px; }
 .news-chip{ font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
   color:var(--slate); background:var(--card); border:1px solid var(--hairline); border-radius:999px;
   padding:8px 14px; min-height:36px; display:inline-flex; align-items:center; text-decoration:none;
