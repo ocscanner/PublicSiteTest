@@ -1,18 +1,82 @@
 [
-  { "slug": "public-safety", "name": "Public Safety", "aliases": ["Police", "Crime"],
-    "blurb": "Police activity, rescues and emergencies across Orange County and Southern California." },
-  { "slug": "fire", "name": "Fire", "aliases": ["Wildfire", "Fire Weather"],
-    "blurb": "Wildfires, structure fires, red flag days and evacuations." },
-  { "slug": "weather", "name": "Weather", "aliases": [],
-    "blurb": "Storms, wind, heat, surf and seasonal outlooks for Southern California." },
-  { "slug": "traffic-aviation", "name": "Traffic & Aviation", "aliases": ["Traffic", "Aviation"],
-    "blurb": "Freeway closures, major crashes, airports and what's in the air over SoCal." },
-  { "slug": "elections-government", "name": "Elections & Government", "aliases": ["Elections", "Government", "Politics"],
-    "blurb": "Election results, ballot measures and the decisions of local and state government." },
-  { "slug": "space", "name": "Space", "aliases": ["Launch", "Launches"],
-    "blurb": "Vandenberg launches, the ISS and what's overhead." },
-  { "slug": "features", "name": "Features", "aliases": ["Feature", "Declassified"],
-    "blurb": "Longer reads, local history and the declassified files." },
-  { "slug": "announcements", "name": "Announcements", "aliases": ["Announcement"],
-    "blurb": "News about OC Scanner itself." }
+  {
+    "slug": "public-safety",
+    "name": "Public Safety",
+    "aliases": [
+      "Police",
+      "Crime"
+    ],
+    "blurb": "Police activity, rescues and emergencies across Orange County and Southern California."
+  },
+  {
+    "slug": "fire",
+    "name": "Fire",
+    "aliases": [
+      "Wildfire",
+      "Fire Weather"
+    ],
+    "blurb": "Wildfires, structure fires, red flag days and evacuations."
+  },
+  {
+    "slug": "weather",
+    "name": "Weather",
+    "aliases": [],
+    "blurb": "Storms, wind, heat, surf and seasonal outlooks for Southern California."
+  },
+  {
+    "slug": "traffic-aviation",
+    "name": "Traffic & Aviation",
+    "aliases": [
+      "Traffic",
+      "Aviation"
+    ],
+    "blurb": "Freeway closures, major crashes, airports and what's in the air over SoCal."
+  },
+  {
+    "slug": "elections-government",
+    "name": "Elections & Government",
+    "aliases": [
+      "Elections",
+      "Government",
+      "Politics"
+    ],
+    "blurb": "Election results, ballot measures and the decisions of local and state government."
+  },
+  {
+    "slug": "space",
+    "name": "Space",
+    "aliases": [
+      "Launch",
+      "Launches"
+    ],
+    "blurb": "Vandenberg launches, the ISS and what's overhead."
+  },
+  {
+    "slug": "this-week",
+    "name": "This Week",
+    "aliases": [
+      "Week in Review",
+      "Week Ahead",
+      "What's Coming",
+      "Weekly"
+    ],
+    "blurb": "Our weekly look back at what happened across Orange County and SoCal, and what's coming next."
+  },
+  {
+    "slug": "features",
+    "name": "Features",
+    "aliases": [
+      "Feature",
+      "Declassified"
+    ],
+    "blurb": "Longer reads, local history and the declassified files."
+  },
+  {
+    "slug": "announcements",
+    "name": "Announcements",
+    "aliases": [
+      "Announcement"
+    ],
+    "blurb": "News about OC Scanner itself."
+  }
 ]
