@@ -1,0 +1,4 @@
+Contact: mailto:security@ocscanner.media
+Expires: 2027-11-21T23:59:00.000Z
+Preferred-Languages: en
+Canonical: https://ocscanner.media/.well-known/security.txt
