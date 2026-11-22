@@ -17,7 +17,7 @@ const SKIP = new Set(['.git', '.github', 'node_modules', OUT, 'functions', 'lib'
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 for (const name of readdirSync('.')) {
-  if (SKIP.has(name) || name.startsWith('.')) continue;
+  if (SKIP.has(name) || (name.startsWith('.') && name !== '.well-known')) continue;
   cpSync(name, join(OUT, name), {
     recursive: true,
     filter: (src) => !/(^|\/)(README\.md|\.DS_Store)$/.test(src) && !/(^|\/)posts\/_[^/]*$/.test(src),
